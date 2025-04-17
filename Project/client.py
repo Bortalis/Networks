@@ -8,6 +8,7 @@ TODO: Fix the message synchronization issue using concurrency (Tier 1, item 1).
 """
 
 import socket
+import threading
 
 HOST = '127.0.0.1'
 PORT = 5000
@@ -20,7 +21,7 @@ PORT = 5000
 # - One thread continuously reads from the socket and displays messages
 # - The main thread handles user input and sends it to the server
 #
-# import threading
+
 
 def main():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
