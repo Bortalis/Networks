@@ -11,6 +11,8 @@ TODO: Fix the message synchronization issue using concurrency (Tier 1, item 1).
 import socket
 import threading
 
+import time #TODO: remove later
+
 HOST = '127.0.0.1'
 PORT = 5000
 
@@ -22,11 +24,11 @@ PORT = 5000
 # - One thread continuously reads from the socket and displays messages
 # - The main thread handles user input and sends it to the server
 #
-done_event = threading.event() #global var :( 
+done_event = threading.Event() #global var :( 
 
 def receive_messages(rfile):
     """Continuously receive and display messages from the server"""
-    while True: #TODO this should turn off when the server disconnects, needs testing
+    while True: #TODO: this should turn off when the server disconnects, needs testing
         line = rfile.readline()
 
         if not line:
@@ -60,13 +62,15 @@ def main():
         wfile = s.makefile('w')
 
     # Start a thread for receiving messages
-    sv_side = threading.Thread(receive_messages, rfile)
+    sv_side = threading.Thread(target=receive_messages,args=(rfile,))
     sv_side.start()
-
 
     # Main thread handles sending user input
     try:
-        while not done_event:
+        while not done_event.is_set():
+            #makes a small gap for the server TODO: remove temp fix
+            time.sleep(0.5)
+
             user_input = input(">> ")
             wfile.write(user_input + '\n')
             wfile.flush()
