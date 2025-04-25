@@ -11,29 +11,23 @@ TODO: Fix the message synchronization issue using concurrency (Tier 1, item 1).
 import socket
 import threading
 
-import time #TODO: remove later
-
 HOST = '127.0.0.1'
 PORT = 5000
+#python3 Networks\Project\client.py for testing purposes
 
-# HINT: The current problem is that the client is reading from the socket,
-# then waiting for user input, then reading again. This causes server
-# messages to appear out of order.
-#
-# Consider using Python's threading module to separate the concerns:
-# - One thread continuously reads from the socket and displays messages
-# - The main thread handles user input and sends it to the server
-#
-done_event = threading.Event() #global var :( 
+
+done_event = threading.Event() # Is true when the thead closes
+done_sending = threading.Event() # Is true while the sever is sending lines TODO: wip
+
 
 def receive_messages(rfile):
     """Continuously receive and display messages from the server"""
-    while True: #TODO: this should turn off when the server disconnects, needs testing
+    while True: 
         line = rfile.readline()
-
+        # Stops the thead once the server disconnects
         if not line:
             print("[INFO] Server disconnected.")
-            done_event.set()
+            done_event.set() #alerts the main thread that this thread has closed
             break
         # Process and display the message
         line = line.strip()
@@ -48,12 +42,13 @@ def receive_messages(rfile):
         else:
             # Normal message
             print(line)
+            if line[0] == 'E': #this should trigger when "Enter" is the first word TODO not the best method
+                done_sending.set() #time for user input
 
 
 
 
 def main():
-
 
     # Set up connection
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -67,18 +62,15 @@ def main():
 
     # Main thread handles sending user input
     try:
-        while not done_event.is_set():
-            #makes a small gap for the server TODO: remove temp fix
-            time.sleep(0.5)
-
-            user_input = input(">> ")
-            wfile.write(user_input + '\n')
-            wfile.flush()
+        while not done_event.is_set(): #there is a connection to the sever
+            if done_sending.is_set(): #the sever is done sending messages
+                user_input = input(">> ")
+                wfile.write(user_input + '\n')
+                wfile.flush()
+                done_sending.clear() #Servers turn to send a messages
 
     except KeyboardInterrupt:
-        sv_side.join()
         print("\n[INFO] Client exiting.")
-
 
 
 if __name__ == "__main__":
