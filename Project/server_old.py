@@ -11,25 +11,17 @@ However, if you want to support multiple clients (i.e. progress through further 
 """
 
 import socket
-import threading
 from battleship import run_single_player_game_online
 
 HOST = '127.0.0.1'
 PORT = 5000
 
-
-def run_game():
-    pass
-
 def main():
-    #listening for clients
     print(f"[INFO] Server listening on {HOST}:{PORT}")
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind((HOST, PORT))
         s.listen(2)
         conn, addr = s.accept()
-
-        #this segment will be functioned
         print(f"[INFO] Client connected from {addr}")
         with conn:
             rfile = conn.makefile('r')
