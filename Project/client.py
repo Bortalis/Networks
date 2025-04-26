@@ -46,8 +46,7 @@ def receive_messages(rfile):
             print(line)
             if line[0] == 'E': #true when "Enter" is the first word TODO: Not a very secure method of checking
                 now_sending.clear() #time for User input
-
-        now_sending.wait(timeout=None) #Dont check the server's file till the User input is sent
+                now_sending.wait(timeout=None) #Dont check the server's file untill the User input is sent
 
 
 def main():
