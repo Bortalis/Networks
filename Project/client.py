@@ -24,12 +24,11 @@ now_sending.set() # The server starts first
 
 def receive_messages(rfile):
     """Continuously receive and display messages from the server"""
-    while not key_interrupt.is_set(): #run while the main thread is active
+    while not key_interrupt.is_set(): # Stop if the main thread is interrupted
         line = rfile.readline()
-        # Stops the thead once the server disconnects
-        if not line:
+        if not line: # Stops the thread once the server disconnects
             print("[INFO] Server disconnected.")
-            server_disc.set() #alerts the main thread that the server disconnected
+            server_disc.set() # Aerts the main thread that the server disconnected
             break
         # Process and display the message
         line = line.strip()
@@ -44,9 +43,9 @@ def receive_messages(rfile):
         else:
             # Normal message
             print(line)
-            if line[0] == 'E': #true when "Enter" is the first word TODO: Not a very secure method of checking
-                now_sending.clear() #time for User input
-                now_sending.wait(timeout=None) #Dont check the server's file untill the User input is sent
+            if line[0] == 'E': # True when "Enter" is the first word TODO: Not a very secure method of checking
+                now_sending.clear() # Time for User input
+                now_sending.wait(timeout=None) # Wait until the user has sent ther input
 
 
 def main():
@@ -62,16 +61,16 @@ def main():
 
     # Main thread handles sending user input
     try:
-        while not server_disc.is_set(): #there is a connection to the sever
-            if not now_sending.is_set(): #the sever is done sending messages
+        while not server_disc.is_set():  # There is a connection to the sever
+            if not now_sending.is_set(): # The sever is done sending messages
                 user_input = input(">> ")
                 wfile.write(user_input + '\n')
                 wfile.flush()
-                now_sending.set() #Servers turn to send a messages
+                now_sending.set() # Server's turn to send a messages
 
     except KeyboardInterrupt:
         key_interrupt.set() #Flag set to end thread
-        now_sending.set() #Unblocks the wait
+        now_sending.set() # Unblocks the wait
         print("\n[INFO] Client exiting.")
 
 
