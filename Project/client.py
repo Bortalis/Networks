@@ -16,18 +16,20 @@ PORT = 5000
 #python3 Networks\Project\client.py for testing purposes
 
 
-done_event = threading.Event() # Is true when the thead closes
-done_sending = threading.Event() # Is true while the sever is sending lines TODO: wip
+server_disc = threading.Event() # Is true when the thead closes
+now_sending = threading.Event() # Is true while the sever is sending lines
+key_interrupt = threading.Event() # Is true unless the main thead has been interrupted
+now_sending.set() # The server starts first
 
 
 def receive_messages(rfile):
     """Continuously receive and display messages from the server"""
-    while True: 
+    while not key_interrupt.is_set(): #run while the main thread is active
         line = rfile.readline()
         # Stops the thead once the server disconnects
         if not line:
             print("[INFO] Server disconnected.")
-            done_event.set() #alerts the main thread that this thread has closed
+            server_disc.set() #alerts the main thread that the server disconnected
             break
         # Process and display the message
         line = line.strip()
@@ -42,14 +44,13 @@ def receive_messages(rfile):
         else:
             # Normal message
             print(line)
-            if line[0] == 'E': #this should trigger when "Enter" is the first word TODO not the best method
-                done_sending.set() #time for user input
+            if line[0] == 'E': #true when "Enter" is the first word TODO: Not a very secure method of checking
+                now_sending.clear() #time for User input
 
-
+        now_sending.wait(timeout=None) #Dont check the server's file till the User input is sent
 
 
 def main():
-
     # Set up connection
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((HOST, PORT))
@@ -62,14 +63,16 @@ def main():
 
     # Main thread handles sending user input
     try:
-        while not done_event.is_set(): #there is a connection to the sever
-            if done_sending.is_set(): #the sever is done sending messages
+        while not server_disc.is_set(): #there is a connection to the sever
+            if not now_sending.is_set(): #the sever is done sending messages
                 user_input = input(">> ")
                 wfile.write(user_input + '\n')
                 wfile.flush()
-                done_sending.clear() #Servers turn to send a messages
+                now_sending.set() #Servers turn to send a messages
 
     except KeyboardInterrupt:
+        key_interrupt.set() #Flag set to end thread
+        now_sending.set() #Unblocks the wait
         print("\n[INFO] Client exiting.")
 
 
