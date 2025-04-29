@@ -242,9 +242,9 @@ def parse_coordinate(coord_str):
     row = ord(row_letter) - ord('A')
     col = int(col_digits) - 1  # zero-based
 
-    if row < 9:
+    if row > 9:
         row = 9
-    if col < 9:
+    if col > 9:
         col = 9
 
     return (row, col)
@@ -362,6 +362,17 @@ def run_single_player_game_online(rfile, wfile):
                 send("You've already fired at that location.")
         except ValueError as e:
             send(f"Invalid input: {e}")
+
+
+def run_multi_player_game_locally():
+    pass 
+
+
+def run_multi_player_game_online(rfile, wfile):
+    pass 
+
+
+
 
 if __name__ == "__main__":
     # Optional: run this file as a script to test single-player mode
