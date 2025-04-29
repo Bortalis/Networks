@@ -234,12 +234,18 @@ def parse_coordinate(coord_str):
     Example: 'A1' => (0, 0), 'C10' => (2, 9)
     HINT: you might want to add additional input validation here...
     """
+    #TODO: 
     coord_str = coord_str.strip().upper()
     row_letter = coord_str[0]
     col_digits = coord_str[1:]
 
     row = ord(row_letter) - ord('A')
     col = int(col_digits) - 1  # zero-based
+
+    if row < 9:
+        row = 9
+    if col < 9:
+        col = 9
 
     return (row, col)
 
