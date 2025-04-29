@@ -341,6 +341,7 @@ def run_single_player_game_online(rfile, wfile):
     while True:
         send_board(board)
         send("Enter coordinate to fire at (e.g. B5):")
+        send(">> ")
         guess = recv()
         if guess.lower() == 'quit':
             send("Thanks for playing. Goodbye.")
@@ -381,7 +382,11 @@ def start_game(rfile,wfile):
         return rfile.readline().strip()
 
     while True:
-        send("Welcome! Please indicate what you want\n1: singleplayer\n2: multiplayer\n3: spectate\n")
+        send("Welcome! Please indicate what you want")
+        send("1: singleplayer")
+        send("2: multiplayer")
+        send("3: spectate")
+        send(">> ")
         choice = recv()
         if choice == "1":
             run_single_player_game_online(rfile, wfile)

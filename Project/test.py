@@ -1,24 +1,16 @@
 import threading
 import time
 print("hi")
-x = threading.Event()
-def delay():
-    print("1")
-    print("1")
-    print("1")
-    time.sleep(1)
-    print("1")
-    print("1")
-    print("1")
-    time.sleep(1)
-    print("1")
-    print("1")
-    print("1")
 
-thd = threading.Thread(target=delay,args=())
+
+def delay():
+    time.sleep(20)
+    print("I'M STILL HERE!")
+
+thd = threading.Thread(target=delay,args=(),daemon=True)
+
 thd.start()
 print("a")
-a = input("type here: ")
 print("b")
 
 

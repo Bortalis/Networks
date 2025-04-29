@@ -45,7 +45,7 @@ def receive_messages(rfile):
         else:
             # Normal message
             print(line)
-            if line[0] == 'E' or line[0] == '3': # True when "Enter" is the first word TODO: Not a very secure method of checking
+            if line[0] == '>': # True when ">> " is the first word TODO: Not a very secure method of checking
                 now_sending.clear() # Time for User input
                 now_sending.wait(timeout=None) # Wait until the user has sent ther input
 
@@ -65,7 +65,7 @@ def main():
     try:
         while not server_disc.is_set():  # There is a connection to the sever
             if not now_sending.is_set(): # The sever is done sending messages
-                user_input = input(">> ")
+                user_input = input()
                 wfile.write(user_input + '\n')
                 wfile.flush()
                 now_sending.set() # Server's turn to send a messages
