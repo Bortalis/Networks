@@ -23,9 +23,11 @@ now_sending.set() # The server starts first
 
 
 def receive_messages(rfile):
+
     """Continuously receive and display messages from the server"""
     while not key_interrupt.is_set(): # Stop if the main thread is interrupted
         line = rfile.readline()
+
         if not line: # Stops the thread once the server disconnects
             print("[INFO] Server disconnected.")
             server_disc.set() # Aerts the main thread that the server disconnected
@@ -43,7 +45,7 @@ def receive_messages(rfile):
         else:
             # Normal message
             print(line)
-            if line[0] == 'E': # True when "Enter" is the first word TODO: Not a very secure method of checking
+            if line[0] == 'E' or line[0] == '3': # True when "Enter" is the first word TODO: Not a very secure method of checking
                 now_sending.clear() # Time for User input
                 now_sending.wait(timeout=None) # Wait until the user has sent ther input
 

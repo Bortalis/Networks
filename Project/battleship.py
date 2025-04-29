@@ -234,7 +234,6 @@ def parse_coordinate(coord_str):
     Example: 'A1' => (0, 0), 'C10' => (2, 9)
     HINT: you might want to add additional input validation here...
     """
-    #TODO: 
     coord_str = coord_str.strip().upper()
     row_letter = coord_str[0]
     col_digits = coord_str[1:]
@@ -242,10 +241,15 @@ def parse_coordinate(coord_str):
     row = ord(row_letter) - ord('A')
     col = int(col_digits) - 1  # zero-based
 
+    #simple valididation forces coordinates within bounds
     if row > 9:
         row = 9
+    elif row < 0:
+        row = 0
     if col > 9:
         col = 9
+    elif col < 0:
+        col = 0
 
     return (row, col)
 
@@ -364,13 +368,31 @@ def run_single_player_game_online(rfile, wfile):
             send(f"Invalid input: {e}")
 
 
-def run_multi_player_game_locally():
-    pass 
-
-
 def run_multi_player_game_online(rfile, wfile):
     pass 
 
+def start_game(rfile,wfile):
+
+    def send(msg):
+        wfile.write(msg + '\n')
+        wfile.flush()
+
+    def recv():
+        return rfile.readline().strip()
+
+    while True:
+        send("Welcome! Please indicate what you want\n1: singleplayer\n2: multiplayer\n3: spectate\n")
+        choice = recv()
+        if choice == "1":
+            run_single_player_game_online(rfile, wfile)
+            break
+        elif choice == "2":
+            run_multi_player_game_online(rfile,wfile)
+            break
+        elif choice == "3":
+            pass
+        else: 
+            send("That wasn't a valid input, try again.") 
 
 
 
