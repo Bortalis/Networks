@@ -18,16 +18,13 @@ PORT = 5000
 
 server_disc = threading.Event() # Is true when the thead closes
 now_sending = threading.Event() # Is true while the sever is sending lines
-key_interrupt = threading.Event() # Is true unless the main thead has been interrupted
 now_sending.set() # The server starts first
 
 
 def receive_messages(rfile):
-
     """Continuously receive and display messages from the server"""
-    while not key_interrupt.is_set(): # Stop if the main thread is interrupted
+    while True:
         line = rfile.readline()
-
         if not line: # Stops the thread once the server disconnects
             print("[INFO] Server disconnected.")
             server_disc.set() # Aerts the main thread that the server disconnected
@@ -58,7 +55,7 @@ def main():
         wfile = s.makefile('w')
 
     # Start a thread for receiving messages
-    sv_side = threading.Thread(target=receive_messages,args=(rfile,))
+    sv_side = threading.Thread(target=receive_messages,args=(rfile,),daemon=True)
     sv_side.start()
 
     # Main thread handles sending user input
@@ -71,10 +68,9 @@ def main():
                 now_sending.set() # Server's turn to send a messages
 
     except KeyboardInterrupt:
-        key_interrupt.set() #Flag set to end thread
         now_sending.set() # Unblocks the wait
         print("\n[INFO] Client exiting.")
-
+    
 
 if __name__ == "__main__":
     main()
