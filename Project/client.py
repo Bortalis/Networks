@@ -18,13 +18,12 @@ PORT = 5000
 
 server_disc = threading.Event() # Is true when the thead closes
 now_sending = threading.Event() # Is true while the sever is sending lines
-key_interrupt = threading.Event() # Is true unless the main thead has been interrupted
 now_sending.set() # The server starts first
 
 
 def receive_messages(rfile):
     """Continuously receive and display messages from the server"""
-    while not key_interrupt.is_set(): # Stop if the main thread is interrupted
+    while True:
         line = rfile.readline()
         if not line: # Stops the thread once the server disconnects
             print("[INFO] Server disconnected.")
@@ -43,7 +42,7 @@ def receive_messages(rfile):
         else:
             # Normal message
             print(line)
-            if line[0] == 'E': # True when "Enter" is the first word TODO: Not a very secure method of checking
+            if line[0] == '>': # True when ">> " is the first word TODO: Not a very secure method of checking
                 now_sending.clear() # Time for User input
                 now_sending.wait(timeout=None) # Wait until the user has sent ther input
 
@@ -56,23 +55,22 @@ def main():
         wfile = s.makefile('w')
 
     # Start a thread for receiving messages
-    sv_side = threading.Thread(target=receive_messages,args=(rfile,))
+    sv_side = threading.Thread(target=receive_messages,args=(rfile,),daemon=True)
     sv_side.start()
 
     # Main thread handles sending user input
     try:
         while not server_disc.is_set():  # There is a connection to the sever
             if not now_sending.is_set(): # The sever is done sending messages
-                user_input = input(">> ")
+                user_input = input()
                 wfile.write(user_input + '\n')
                 wfile.flush()
                 now_sending.set() # Server's turn to send a messages
 
     except KeyboardInterrupt:
-        key_interrupt.set() #Flag set to end thread
         now_sending.set() # Unblocks the wait
         print("\n[INFO] Client exiting.")
-
+    
 
 if __name__ == "__main__":
     main()

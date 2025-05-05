@@ -1,13 +1,18 @@
-#import threading
-#print("hi")
-#x = threading.Event()
-#def delay():
-#    x.wait(timeout=None)
-#    print("done!")
-#thd = threading.Thread(target=delay,args=())
-#thd.start()
-#a = input("interrupt here")
-#x.set()
+import threading
+import time
+print("hi")
 
-print(11%10)
+
+def delay():
+    time.sleep(20)
+    print("I'M STILL HERE!")
+
+thd = threading.Thread(target=delay,args=(),daemon=True)
+
+thd.start()
+print("a")
+print("b")
+
+
+
 

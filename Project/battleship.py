@@ -234,7 +234,6 @@ def parse_coordinate(coord_str):
     Example: 'A1' => (0, 0), 'C10' => (2, 9)
     HINT: you might want to add additional input validation here...
     """
-    #TODO: 
     coord_str = coord_str.strip().upper()
     row_letter = coord_str[0]
     col_digits = coord_str[1:]
@@ -242,10 +241,15 @@ def parse_coordinate(coord_str):
     row = ord(row_letter) - ord('A')
     col = int(col_digits) - 1  # zero-based
 
+    #simple valididation forces coordinates within bounds
     if row > 9:
         row = 9
+    elif row < 0:
+        row = 0
     if col > 9:
         col = 9
+    elif col < 0:
+        col = 0
 
     return (row, col)
 
@@ -317,10 +321,10 @@ def run_single_player_game_online(rfile, wfile):
 
     def send_board(board):
         wfile.write("GRID\n")
-        wfile.write("  " + " ".join(str(i + 1).rjust(2) for i in range(board.size)) + '\n')
+        wfile.write("_|" + " ".join(str(i + 1).rjust(2) for i in range(board.size)) + '\n')
         for r in range(board.size):
             row_label = chr(ord('A') + r)
-            row_str = " ".join(board.display_grid[r][c] for c in range(board.size))
+            row_str = "  ".join(board.display_grid[r][c] for c in range(board.size))
             wfile.write(f"{row_label:2} {row_str}\n")
         wfile.write('\n')
         wfile.flush()
@@ -337,6 +341,7 @@ def run_single_player_game_online(rfile, wfile):
     while True:
         send_board(board)
         send("Enter coordinate to fire at (e.g. B5):")
+        send(">> ")
         guess = recv()
         if guess.lower() == 'quit':
             send("Thanks for playing. Goodbye.")
@@ -364,13 +369,37 @@ def run_single_player_game_online(rfile, wfile):
             send(f"Invalid input: {e}")
 
 
-def run_multi_player_game_locally():
-    pass 
-
-
 def run_multi_player_game_online(rfile, wfile):
+
+    #wait till connected
     pass 
 
+def start_game(rfile,wfile):
+
+    def send(msg):
+        wfile.write(msg + '\n')
+        wfile.flush()
+
+    def recv():
+        return rfile.readline().strip()
+
+    while True:
+        send("Welcome! Please indicate what you want")
+        send("1: singleplayer")
+        send("2: multiplayer")
+        send("3: spectate")
+        send(">> ")
+        choice = recv()
+        if choice == "1":
+            run_single_player_game_online(rfile, wfile)
+            break
+        elif choice == "2":
+            run_multi_player_game_online(rfile,wfile)
+            break
+        elif choice == "3":
+            pass
+        else: 
+            send("That wasn't a valid input, try again.") 
 
 
 
