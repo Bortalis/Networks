@@ -60,7 +60,7 @@ def main():
                 thread.join()
 
     except Exception as e:
-        logger.exception("lol",stack_info = True)
+        logger.exception("I don't even know what went wronf in this case",stack_info = True)
     logger.debug("Server turning off")
 
 
