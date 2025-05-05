@@ -19,6 +19,7 @@ PORT = 5000
 logging.basicConfig(
     filename="Server_log",
     level=logging.DEBUG,
+    filemode="w"
 )
 logger = logging.getLogger(__name__)
 
@@ -32,7 +33,6 @@ def handle_client(conn, addr):
         wfile = conn.makefile('w')
         players_ready.wait(timeout=None) #only start once the number of players needed is reached
         start_game_online(rfile,wfile)
-
     logger.debug(f"[INFO] Client from {addr} disconnected.")
 
 
@@ -61,8 +61,14 @@ def main():
                 logger.debug("All threads have joined")
 
     except Exception as e:
-        logger.exception("I don't even know what went wronf in this case",stack_info = True)
+        logger.exception("I don't even know what went wrong in this case",stack_info = True)
+
+    for a in threading.enumerate():
+        logger.debug(a)
+
     logger.debug("Server turning off")
+
+
 
 
 

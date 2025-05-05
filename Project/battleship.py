@@ -1,6 +1,7 @@
 
 import random
 
+
 BOARD_SIZE = 10
 SHIPS = [
     ("Carrier", 5),
@@ -364,7 +365,7 @@ def start_game_locally():
             print("Goodbye!")
             break
         else: 
-            send("That wasn't a valid input, try again.") 
+            print("That wasn't a valid input, try again.") 
 
 def run_single_player_game_locally():
     """
