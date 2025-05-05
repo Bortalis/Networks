@@ -366,10 +366,10 @@ def start_game_locally():
         print(">> ")
         choice = input()
         if choice == "1":
-            run_single_player_game_locally(rfile, wfile)
+            run_single_player_game_locally()
             break
         elif choice == "2":
-            run_multi_player_game_locally(rfile,wfile)
+            run_multi_player_game_locally()
             break
         elif choice == "3":
             print("Goodbye!")
