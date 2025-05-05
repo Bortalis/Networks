@@ -321,10 +321,10 @@ def run_single_player_game_online(rfile, wfile):
 
     def send_board(board):
         wfile.write("GRID\n")
-        wfile.write("  " + " ".join(str(i + 1).rjust(2) for i in range(board.size)) + '\n')
+        wfile.write("_|" + " ".join(str(i + 1).rjust(2) for i in range(board.size)) + '\n')
         for r in range(board.size):
             row_label = chr(ord('A') + r)
-            row_str = " ".join(board.display_grid[r][c] for c in range(board.size))
+            row_str = "  ".join(board.display_grid[r][c] for c in range(board.size))
             wfile.write(f"{row_label:2} {row_str}\n")
         wfile.write('\n')
         wfile.flush()
@@ -370,6 +370,8 @@ def run_single_player_game_online(rfile, wfile):
 
 
 def run_multi_player_game_online(rfile, wfile):
+
+    #wait till connected
     pass 
 
 def start_game(rfile,wfile):

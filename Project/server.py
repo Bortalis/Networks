@@ -12,11 +12,9 @@ import socket
 import threading
 import logging
 from battleship import start_game
-#from battleship import run_single_player_game_online
 
 HOST = '127.0.0.1'
 PORT = 5000
-
 
 logging.basicConfig(
     filename="Server_log",
@@ -24,19 +22,16 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-
 players_ready = threading.Event()
 
 #starts the game for the client
 def handle_client(conn, addr):
     logger.debug(f"[INFO] Client connected from {addr}")
-
     with conn:
         rfile = conn.makefile('r')
         wfile = conn.makefile('w')
         players_ready.wait(timeout=None) #only start once the number of players needed is reached
         start_game(rfile,wfile)
-        #run_single_player_game_online(rfile, wfile)
 
     logger.debug(f"[INFO] Client from {addr} disconnected.")
 
@@ -66,6 +61,7 @@ def main():
 
     except Exception as e:
         logger.exception("lol",stack_info = True)
+    logger.debug("Server turning off")
 
 
 if __name__ == "__main__":
