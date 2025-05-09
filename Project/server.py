@@ -63,6 +63,7 @@ def main():
     except Exception as e:
         logger.exception("I don't even know what went wrong in this case",stack_info = True)
 
+    #triple checking that there's no lingering threads
     for a in threading.enumerate():
         logger.debug(a)
 

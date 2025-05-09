@@ -4,7 +4,6 @@ client.py
 Connects to a Battleship server which runs the single-player game.
 Simply pipes user input to the server, and prints all server responses.
 
-TODO: Fix the message synchronization issue using concurrency (Tier 1, item 1).
 """
 #import threading #will allow client and sever listening to be done at the same time
 
@@ -54,6 +53,8 @@ def main():
         rfile = s.makefile('r')
         wfile = s.makefile('w')
 
+
+    print("\n[INFO] Successfully connected to Server")
     # Start a thread for receiving messages
     sv_side = threading.Thread(target=receive_messages,args=(rfile,),daemon=True)
     sv_side.start()

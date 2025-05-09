@@ -281,11 +281,6 @@ def run_single_player_game_online(rfile, wfile):
     Expects:
       - rfile: file-like object to .readline() from client
       - wfile: file-like object to .write() back to client
-    
-    #####
-    NOTE: This function is (intentionally) currently somewhat "broken", which will be evident if you try and play the game via server/client.
-    You can use this as a starting point, or write your own.
-    #####
     """
     def send(msg):
         wfile.write(msg + '\n')
@@ -340,12 +335,9 @@ def run_single_player_game_online(rfile, wfile):
         except ValueError as e:
             send(f"Invalid input: {e}")
 
-def run_multi_player_game_online(rfile, wfile):
-
+def run_multi_player_game_online(rfile, wfile, ):
     #wait till connected
     pass 
-
-
 
 def start_game_locally():
     while True:
