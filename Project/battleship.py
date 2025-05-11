@@ -244,36 +244,6 @@ def parse_coordinate(coord_str):
     return (row, col)
 
 
-def start_game_online(rfile,wfile):
-
-    def send(msg):
-        wfile.write(msg + '\n')
-        wfile.flush()
-
-    def recv():
-        return rfile.readline().strip()
-
-    while True:
-        send("Welcome! Please indicate what you want")
-        send("1: singleplayer")
-        send("2: multiplayer")
-        send("3: spectate")
-        send("4: quit")
-        send(">> ")
-        choice = recv()
-        if choice == "1":
-            run_single_player_game_online(rfile, wfile)
-            break
-        elif choice == "2":
-            run_multi_player_game_online(rfile,wfile)
-            break
-        elif choice == "3":
-            pass
-        elif choice == "4":
-            send("Goodbye!")
-            break
-        else: 
-            send("That wasn't a valid input, try again.") 
 
 def run_single_player_game_online(rfile, wfile):
     """
@@ -286,12 +256,13 @@ def run_single_player_game_online(rfile, wfile):
         wfile.write(msg + '\n')
         wfile.flush()
 
-    def send_board(board):
+    def send_board(board,show_hidden=False):
+        grid_to_send = board.hidden_grid if show_hidden else board.display_grid
         wfile.write("GRID\n")
         wfile.write("_|" + " ".join(str(i + 1).rjust(2) for i in range(board.size)) + '\n')
         for r in range(board.size):
             row_label = chr(ord('A') + r)
-            row_str = "  ".join(board.display_grid[r][c] for c in range(board.size))
+            row_str = "  ".join(grid_to_send[r][c] for c in range(board.size))
             wfile.write(f"{row_label:2} {row_str}\n")
         wfile.write('\n')
         wfile.flush()
@@ -335,9 +306,111 @@ def run_single_player_game_online(rfile, wfile):
         except ValueError as e:
             send(f"Invalid input: {e}")
 
-def run_multi_player_game_online(rfile, wfile, ):
-    #wait till connected
-    pass 
+def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2):
+
+    def send(msg,player):
+        if player == 1:
+            wfile1.write(msg + '\n')
+            wfile1.flush()
+        else:
+            wfile2.write(msg + '\n')
+            wfile2.flush()
+            
+    def send_board(board, player, show_hidden = False):
+        grid = board.hidden_grid if show_hidden else board.display_grid
+
+        if player == 1:
+            wfile1.write("GRID\n")
+            wfile1.write("_|" + " ".join(str(i + 1).rjust(2) for i in range(board.size)) + '\n')
+            for r in range(board.size):
+                row_label = chr(ord('A') + r)
+                row_str = "  ".join(grid[r][c] for c in range(board.size))
+                wfile1.write(f"{row_label:2} {row_str}\n")
+            wfile1.write('\n')
+            wfile1.flush()
+        else: 
+            wfile2.write("GRID\n")
+            wfile2.write("_|" + " ".join(str(i + 1).rjust(2) for i in range(board.size)) + '\n')
+            for r in range(board.size):
+                row_label = chr(ord('A') + r)
+                row_str = "  ".join(grid[r][c] for c in range(board.size))
+                wfile2.write(f"{row_label:2} {row_str}\n")
+            wfile2.write('\n')
+            wfile2.flush()
+
+
+    def recv(player):
+        if player == 1:
+            return rfile1.readline().strip()
+        else:
+            return rfile2.readline().strip()
+    
+    player1_board = Board(BOARD_SIZE)
+    player2_board = Board(BOARD_SIZE)
+
+    send("Welcome to Online Multi-Player Battleship! Try to sink all the ships. Type 'quit' to exit.",1)
+    send("Welcome to Online Multi-Player Battleship! Try to sink all the ships. Type 'quit' to exit.",2)
+
+    if True: #REMOVE LATER!!!!!!!!!!!!!! TODO:
+        player1_board.place_ships_randomly(SHIPS)
+        player2_board.place_ships_randomly(SHIPS)
+
+    # Player 1 starts off
+    current_player = 1
+    while True:
+        # Turn tracker and manager
+        send(f"Your turn!",current_player)
+        if current_player == 1:
+            board_in_use = player1_board
+            opponent_board = player2_board
+        else:
+            board_in_use = player2_board
+            opponent_board = player1_board
+
+        # Display boards
+        send(f"Your Opponent's board:", current_player)
+        send_board(opponent_board, current_player)
+        send(f"Your board:", current_player)
+        send_board(board_in_use, current_player, True)
+
+
+
+        # Get the shot from the current player
+        send("Enter a coordinate to fire at (or 'quit' to forfeit): ", current_player)
+        send(">>", current_player)
+        guess = recv(current_player)
+
+        if guess.lower() == 'quit':
+            send(f"Player {current_player} forfeits! Player {3 - current_player} wins!", current_player)
+            send(f"Player {current_player} forfeits! Player {3 - current_player} wins!", 3 - current_player)
+            break
+
+        try:
+            row, col = parse_coordinate(guess)
+            result, sunk_name = opponent_board.fire_at(row, col)
+
+            if result == 'hit':
+                if sunk_name:
+                    send(f"HIT! You sank the {sunk_name}!", current_player)
+                else:
+                    send("HIT!", current_player)
+            elif result == 'miss':
+                send("MISS!", current_player)
+            elif result == 'already_shot':
+                send("You've already shot at that spot. Pay attention.", current_player)
+       
+            # Check if the opponent has lost all ships
+            if opponent_board.all_ships_sunk():
+                send(f"\nPlayer {current_player} wins! All ships have been sunk.", current_player)
+                break
+
+            # Switch turns between Player 1 and Player 2
+            current_player = 3 - current_player
+        except ValueError as e:
+            send("  Invalid input, better luck next shot...", current_player)
+
+
+
 
 def start_game_locally():
     while True:
