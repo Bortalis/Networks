@@ -1,6 +1,7 @@
 DEBUG:__main__:[INFO] Server listening on 127.0.0.1:5000
-DEBUG:__main__:[INFO] Client connected from ('127.0.0.1', 64587)
-DEBUG:__main__:[INFO] Client from ('127.0.0.1', 64587) disconnected.
+DEBUG:__main__:[INFO] Client connected from ('127.0.0.1', 60157)
+DEBUG:__main__:[INFO] Client connected from ('127.0.0.1', 60160)
+DEBUG:__main__:<_MainThread(MainThread, started 18896)>
+DEBUG:__main__:<Thread(Thread-1 (multi_client), started daemon 19900)>
 DEBUG:__main__:All threads have joined
-DEBUG:__main__:<_MainThread(MainThread, started 3004)>
 DEBUG:__main__:Server turning off

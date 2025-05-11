@@ -5,7 +5,7 @@ Serves a single-player Battleship session to one connected client.
 Game logic is handled entirely on the server using battleship.py.
 Client sends FIRE commands, and receives game feedback.
 
-However, if you want to support multiple clients (i.e. progress through further Tiers), you'll need concurrency here too.
+
 """
 
 import socket
@@ -24,27 +24,29 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-players_ready = threading.Event()
 
-#starts the game for the client
-def handle_client(conn, addr):
+def single_client(conn, addr):
     logger.debug(f"[INFO] Client connected from {addr}")
     with conn:
         rfile = conn.makefile('r')
         wfile = conn.makefile('w')
-        players_ready.wait(timeout=None) #only start once the number of players needed is reached
-        start_game_online(rfile,wfile)
+        run_single_player_game_online(rfile, wfile)
     logger.debug(f"[INFO] Client from {addr} disconnected.")
 
-#dunno yet
-def start_game_online(rfile,wfile):
+def multi_client(conn1, addr1, conn2, addr2):
+    logger.debug(f"[INFO] Client connected from {addr1}")
+    logger.debug(f"[INFO] Client connected from {addr2}")
+    rfile1 = conn1.makefile('r')
+    wfile1 = conn1.makefile('w')
+    rfile2 = conn2.makefile('r')
+    wfile2 = conn2.makefile('w')
 
-    def send(msg):
-        wfile.write(msg + '\n')
-        wfile.flush()
+    run_multi_player_game_online(rfile1,wfile1,rfile2,wfile2)
 
-    def recv():
-        return rfile.readline().strip()
+    conn1.close()
+    conn2.close()
+
+
 
     
 
@@ -61,26 +63,23 @@ def main():
             queue = [] #this is the list of players idk
             while True: #only accept connections if below the player cap
                 conn, addr = s.accept()
-                logger.debug(f"[INFO] Client connected from {addr}")
                 conn2, addr2 = s.accept()
-                logger.debug(f"[INFO] Client connected from {addr2}")
-                client_thread = threading.Thread(target=run_multi_player_game_online, args=(conn, addr, conn2, addr2), daemon=True)
+                client_thread = threading.Thread(target=multi_client, args=(conn, addr, conn2, addr2), daemon=True)
                 client_thread.start()
                 threads.append(client_thread)
-                
+
                 break
 
-            players_ready.set()
+            #triple checking that there's no lingering threads
+            for a in threading.enumerate():
+                logger.debug(a)
+
             for thread in threads: #waits for all players to finish their game before closing
                 thread.join()
                 logger.debug("All threads have joined")
 
     except Exception as e:
         logger.exception("I don't even know what went wrong in this case",stack_info = True)
-
-    #triple checking that there's no lingering threads
-    for a in threading.enumerate():
-        logger.debug(a)
 
     logger.debug("Server turning off")
 
