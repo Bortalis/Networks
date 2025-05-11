@@ -11,7 +11,8 @@ However, if you want to support multiple clients (i.e. progress through further 
 import socket
 import threading
 import logging
-from battleship import start_game_online
+from battleship import run_single_player_game_online
+from battleship import run_multi_player_game_online
 
 HOST = '127.0.0.1'
 PORT = 5000
@@ -35,25 +36,39 @@ def handle_client(conn, addr):
         start_game_online(rfile,wfile)
     logger.debug(f"[INFO] Client from {addr} disconnected.")
 
+#dunno yet
+def start_game_online(rfile,wfile):
+
+    def send(msg):
+        wfile.write(msg + '\n')
+        wfile.flush()
+
+    def recv():
+        return rfile.readline().strip()
+
+    
+
 
 def main():
     try:
         threads = [] # keeps track of threads
-        player_cap = 1 #sets the min and max number of clients
-        player_num = 0 #current number of connected clients
 
         logger.debug(f"[INFO] Server listening on {HOST}:{PORT}")
 
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.bind((HOST, PORT))
-            s.listen(2)  # Allow up to 2 unaccepted connections before refusing
-
-            while player_num < player_cap: #only accept connections if below the player cap
+            s.listen()
+            queue = [] #this is the list of players idk
+            while True: #only accept connections if below the player cap
                 conn, addr = s.accept()
-                client_thread = threading.Thread(target=handle_client, args=(conn, addr), daemon=True)
+                logger.debug(f"[INFO] Client connected from {addr}")
+                conn2, addr2 = s.accept()
+                logger.debug(f"[INFO] Client connected from {addr2}")
+                client_thread = threading.Thread(target=run_multi_player_game_online, args=(conn, addr, conn2, addr2), daemon=True)
                 client_thread.start()
                 threads.append(client_thread)
-                player_num += 1
+                
+                break
 
             players_ready.set()
             for thread in threads: #waits for all players to finish their game before closing
