@@ -26,8 +26,9 @@ def receive_messages(rfile):
         line = rfile.readline()
         if not line: # Stops the thread once the server disconnects
             print("[INFO] Server disconnected.")
-            server_disc.set() # Aerts the main thread that the server disconnected
+            server_disc.set() # Alerts the main thread that the server disconnected
             break
+
         # Process and display the message
         line = line.strip()
         if line == "GRID":
