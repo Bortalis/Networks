@@ -9,6 +9,10 @@ Simply pipes user input to the server, and prints all server responses.
 
 import socket
 import threading
+import os #TODO: NOT SAFE AT ALL
+def cls():
+    os.system('cls')
+
 
 HOST = '127.0.0.1'
 PORT = 5000
@@ -28,12 +32,14 @@ def receive_messages(rfile):
             print("[INFO] Server disconnected.")
             server_disc.set() # Alerts the main thread that the server disconnected
             break
+        
+        if line == "Your turn!":
+            cls()
 
         # Process and display the message
         line = line.strip()
         if line == "GRID":
             # Begin reading board lines
-            print("\n[Board]")
             while True:
                 board_line = rfile.readline()
                 if not board_line or board_line.strip() == "":
@@ -42,7 +48,7 @@ def receive_messages(rfile):
         else:
             # Normal message
             print(line)
-            if line[0] == '>': # True when ">> " is the first word TODO: Not a very secure method of checking
+            if line == '>>': # True when ">> " is the line TODO: Not a very secure method of checking
                 now_sending.clear() # Time for User input
                 now_sending.wait(timeout=None) # Wait until the user has sent ther input
 

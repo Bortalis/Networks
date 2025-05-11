@@ -262,7 +262,7 @@ def run_single_player_game_online(rfile, wfile):
         wfile.write("_|" + " ".join(str(i + 1).rjust(2) for i in range(board.size)) + '\n')
         for r in range(board.size):
             row_label = chr(ord('A') + r)
-            row_str = "  ".join(board.display_grid[r][c] for c in range(board.size))
+            row_str = "  ".join(grid_to_send[r][c] for c in range(board.size))
             wfile.write(f"{row_label:2} {row_str}\n")
         wfile.write('\n')
         wfile.flush()
@@ -316,15 +316,15 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2):
             wfile2.write(msg + '\n')
             wfile2.flush()
             
-    def send_board(grid, player, show_hidden = False):
-        board = grid.hidden_grid if show_hidden else grid.display_grid
+    def send_board(board, player, show_hidden = False):
+        grid = board.hidden_grid if show_hidden else board.display_grid
 
         if player == 1:
             wfile1.write("GRID\n")
             wfile1.write("_|" + " ".join(str(i + 1).rjust(2) for i in range(board.size)) + '\n')
             for r in range(board.size):
                 row_label = chr(ord('A') + r)
-                row_str = "  ".join(board[r][c] for c in range(board.size))
+                row_str = "  ".join(grid[r][c] for c in range(board.size))
                 wfile1.write(f"{row_label:2} {row_str}\n")
             wfile1.write('\n')
             wfile1.flush()
@@ -333,10 +333,11 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2):
             wfile2.write("_|" + " ".join(str(i + 1).rjust(2) for i in range(board.size)) + '\n')
             for r in range(board.size):
                 row_label = chr(ord('A') + r)
-                row_str = "  ".join(board[r][c] for c in range(board.size))
+                row_str = "  ".join(grid[r][c] for c in range(board.size))
                 wfile2.write(f"{row_label:2} {row_str}\n")
             wfile2.write('\n')
             wfile2.flush()
+
 
     def recv(player):
         if player == 1:
@@ -354,19 +355,11 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2):
         player1_board.place_ships_randomly(SHIPS)
         player2_board.place_ships_randomly(SHIPS)
 
-    else:
-        send1("Player 1, place your ships.")
-        player1_board.place_ships_manually(SHIPS)
-
-        send2("\nPlayer 2, place your ships.")
-        player2_board.place_ships_manually(SHIPS)
-
-    # Player turn tracker
+    # Player 1 starts off
     current_player = 1
-
     while True:
-        # Who's turn is it? swap boards?
-        send(f"Player {current_player}'s turn!",current_player)
+        # Turn tracker and manager
+        send(f"Your turn!",current_player)
         if current_player == 1:
             board_in_use = player1_board
             opponent_board = player2_board
@@ -380,6 +373,8 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2):
         send(f"Your board:", current_player)
         send_board(board_in_use, current_player, True)
 
+
+
         # Get the shot from the current player
         send("Enter a coordinate to fire at (or 'quit' to forfeit): ", current_player)
         send(">>", current_player)
@@ -387,6 +382,7 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2):
 
         if guess.lower() == 'quit':
             send(f"Player {current_player} forfeits! Player {3 - current_player} wins!", current_player)
+            send(f"Player {current_player} forfeits! Player {3 - current_player} wins!", 3 - current_player)
             break
 
         try:
@@ -402,10 +398,7 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2):
                 send("MISS!", current_player)
             elif result == 'already_shot':
                 send("You've already shot at that spot. Pay attention.", current_player)
-
-            send("Opponent's board after your shot:", current_player)
-            opponent_board.print_display_grid()
-            
+       
             # Check if the opponent has lost all ships
             if opponent_board.all_ships_sunk():
                 send(f"\nPlayer {current_player} wins! All ships have been sunk.", current_player)

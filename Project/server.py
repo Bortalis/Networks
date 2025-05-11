@@ -61,18 +61,14 @@ def main():
             s.bind((HOST, PORT))
             s.listen()
             queue = [] #this is the list of players idk
-            while True: #only accept connections if below the player cap
+            while True:
                 conn, addr = s.accept()
                 conn2, addr2 = s.accept()
                 client_thread = threading.Thread(target=multi_client, args=(conn, addr, conn2, addr2), daemon=True)
                 client_thread.start()
                 threads.append(client_thread)
-
                 break
 
-            #triple checking that there's no lingering threads
-            for a in threading.enumerate():
-                logger.debug(a)
 
             for thread in threads: #waits for all players to finish their game before closing
                 thread.join()
