@@ -90,6 +90,11 @@ def main():
             if not now_sending.is_set(): # The sever is done sending messages
                 flush_input() #eats up any buffed input
                 user_input = input()
+
+                #FOR TASK 1.4
+                wfile.write(send2Server(user_input,wfile) + '\n') # Send FIRE MESSAGE TO SERVER
+
+
                 wfile.write(user_input + '\n')
                 wfile.flush()
                 now_sending.set() # Server's turn to send a messages
@@ -99,8 +104,27 @@ def main():
         print("\n[INFO] Client exiting.")
 
 
-def fireORplace(user_input):
-    return f"Fire at {user_input}"
+
+#TASK 1.4
+#Communication with the server what is Shoot/placed
+#concern with placing ships TODO!!!!!!!!! Later tho
+def send2Server(user_input,WriteMsgTo):
+        messsage = f"Fire at {user_input}"
+        WriteMsgTo.write(messsage + '\n')
+        WriteMsgTo.flush()
+        return
+
+#how can I send this to server? - rfile.write
+#how can I get server to understand it
+        
+
+def listen2Server():
+    return
+
+
+
+
+
     
 
 if __name__ == "__main__":

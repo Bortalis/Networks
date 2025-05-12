@@ -47,6 +47,10 @@ def multi_client(conn1, addr1, conn2, addr2):
     conn2.close()
 
 
+def listen2Client(rfile, wfile): #to deal with the client msgs 
+    return
+
+
 
     
 
