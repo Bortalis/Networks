@@ -47,8 +47,24 @@ def multi_client(conn1, addr1, conn2, addr2):
     conn2.close()
 
 
-def listen2Client(rfile, wfile): #to deal with the client msgs 
-    return
+#TASK 1.4 ----------------------------------------------------------------------------------
+def listen2Client(rfile, wfile): #to deal with the client msgs (focusing on 1 player for now)
+
+        line = line.strip()
+        logger.debug(f"[INFO] Received from client: {line}")
+
+        # Client should ensure no invalid commands are sent (I THINK IDK HOW IT WORKS FULLY)
+        if line.startswith("Fire at"):
+            target = line[8:]  # Everything after "Fire at "
+                               # May want to change to split line then take the last element
+            logger.debug(f"[ACTION] Player fired at {target}")
+                
+            # You could respond back to the client:
+            wfile.write(f"Received fire command at {target}\n")
+            wfile.flush()
+            
+        else:
+            print(f"[WARNING] Unknown command: {line}")
 
 
 
