@@ -97,6 +97,10 @@ def main():
     except KeyboardInterrupt:
         now_sending.set() # Unblocks the wait
         print("\n[INFO] Client exiting.")
+
+
+def fireORplace(user_input):
+    return f"Fire at {user_input}"
     
 
 if __name__ == "__main__":
