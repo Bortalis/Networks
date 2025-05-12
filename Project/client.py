@@ -9,9 +9,26 @@ Simply pipes user input to the server, and prints all server responses.
 
 import socket
 import threading
-import os #TODO: NOT SAFE AT ALL
-def cls():
-    os.system('cls')
+
+import sys
+
+def flush_input():
+    try:
+        import termios  # Unix
+        import tty
+        import select
+
+        while True:
+            dr, dw, de = select.select([sys.stdin], [], [], 0)
+            if dr:
+                sys.stdin.read(1)
+            else:
+                break
+    except ImportError:
+        # Windows
+        import msvcrt
+        while msvcrt.kbhit():
+            msvcrt.getch()
 
 
 HOST = '127.0.0.1'
@@ -33,8 +50,8 @@ def receive_messages(rfile):
             server_disc.set() # Alerts the main thread that the server disconnected
             break
         
-        if line == "Your turn!":
-            cls()
+        #if line == "Your turn!":
+            #cls() maybe for later
 
         # Process and display the message
         line = line.strip()
@@ -68,8 +85,10 @@ def main():
 
     # Main thread handles sending user input
     try:
+
         while not server_disc.is_set():  # There is a connection to the sever
             if not now_sending.is_set(): # The sever is done sending messages
+                flush_input() #eats up any buffed input
                 user_input = input()
                 wfile.write(user_input + '\n')
                 wfile.flush()
