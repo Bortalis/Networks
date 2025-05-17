@@ -41,13 +41,6 @@ now_sending = threading.Event() # Is true while the sever is sending lines
 now_sending.set() # The server starts first
 
 
-def send_messages(wfile,message):
-        wfile.write(message + '\n')
-        wfile.flush()
-        print(f"[INFO] Sent to server: {message}")
-        return
-
-
 def receive_messages(rfile):
     """Continuously receive and display messages from the server"""
     while True:
