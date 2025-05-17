@@ -271,7 +271,7 @@ def run_single_player_game_online(rfile, wfile):
         return rfile.readline().strip()
 
     board = Board(BOARD_SIZE)
-    board.place_ships_randomly(SHIPS)
+    board.place_ships_manually(SHIPS)
 
     send("Welcome to Online Single-Player Battleship! Try to sink all the ships. Type 'quit' to exit.")
 
