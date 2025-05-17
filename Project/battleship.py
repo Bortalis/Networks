@@ -245,14 +245,14 @@ def parse_coordinate(coord_str):
 
 
 
-def run_single_player_game_online(rfile, wfile):
+def run_single_player_game_online(rfile, wfile, gameState_ref):
     """
     A test harness for running the single-player game with I/O redirected to socket file objects.
     Expects:
       - rfile: file-like object to .readline() from client
       - wfile: file-like object to .write() back to client
     """
-    gameState = 0 # 0 = waiting for player to place ships, 1 = game in progress, 2 = game over
+    gameState_ref[0] = 0 # 0 = waiting for player to place ships
 
     def send(msg):
         wfile.write(msg + '\n')
@@ -274,7 +274,7 @@ def run_single_player_game_online(rfile, wfile):
 
     board = Board(BOARD_SIZE)
     board.place_ships_manually(SHIPS)
-    gameState = 1 # Game is in progress, now in firing phase 
+    gameState_ref[0] = 1 # Game is in progress, now in firing phase 
 
     send("Welcome to Online Single-Player Battleship! Try to sink all the ships. Type 'quit' to exit.")
 
@@ -301,7 +301,7 @@ def run_single_player_game_online(rfile, wfile):
                 if board.all_ships_sunk():
                     send_board(board)
                     send(f"Congratulations! You sank all ships in {moves} moves.")
-                    gameState = 2 # Game over
+                    gameState_ref[0] = 2 # Game over
                     return
             elif result == 'miss':
                 send("MISS!")
@@ -310,9 +310,9 @@ def run_single_player_game_online(rfile, wfile):
         except ValueError as e:
             send(f"Invalid input: {e}")
 
-def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2):
+def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
 
-    gameState = 0 # 0 = waiting for player to place ships, 1 = game in progress, 2 = game over
+    gameState_ref[0] = 0 # 0 = waiting for player to place ships
 
     def send(msg,player):
         if player == 1:
@@ -367,7 +367,7 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2):
         player1_board.place_ships_manually(SHIPS)
         player2_board.place_ships_manually(SHIPS) 
 
-    gameState = 1 # Game state is now in progress 
+    gameState_ref[0] = 1 # Game state is now in progress 
 
     # Player 1 starts off
     current_player = 1
@@ -397,7 +397,7 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2):
         if guess.lower() == 'quit':
             send(f"Player {current_player} forfeits! Player {3 - current_player} wins!", current_player)
             send(f"Player {current_player} forfeits! Player {3 - current_player} wins!", 3 - current_player)
-            gameState = 2 # Game over
+            gameState_ref[0] = 2 # Game over
             break
 
         try:
@@ -417,7 +417,8 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2):
             # Check if the opponent has lost all ships
             if opponent_board.all_ships_sunk():
                 send(f"\nPlayer {current_player} wins! All ships have been sunk.", current_player)
-                gameState = 2 # Game over
+                send(f"\nYou lost! All your ships have been sunk.", 3 - current_player)
+                gameState_ref[0] = 2 # Game over
                 break
 
             # Switch turns between Player 1 and Player 2
