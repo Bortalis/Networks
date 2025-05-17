@@ -108,11 +108,11 @@ def main():
                 flush_input() #eats up any buffed input
                 user_input = input()
 
-                #wfile.write(user_input + '\n')
-                #wfile.flush()
+                wfile.write(user_input + '\n')
+                wfile.flush()
 
                 #FOR TASK 1.4
-                send_messages(wfile, user_input)
+                #send_messages(wfile, user_input)
 
 
                 now_sending.set() # Server's turn to send a messages
