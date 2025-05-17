@@ -252,6 +252,8 @@ def run_single_player_game_online(rfile, wfile):
       - rfile: file-like object to .readline() from client
       - wfile: file-like object to .write() back to client
     """
+    gameState = 0 # 0 = waiting for player to place ships, 1 = game in progress, 2 = game over
+
     def send(msg):
         wfile.write(msg + '\n')
         wfile.flush()
@@ -272,6 +274,7 @@ def run_single_player_game_online(rfile, wfile):
 
     board = Board(BOARD_SIZE)
     board.place_ships_manually(SHIPS)
+    gameState = 1 # Game is in progress, now in firing phase 
 
     send("Welcome to Online Single-Player Battleship! Try to sink all the ships. Type 'quit' to exit.")
 
@@ -298,6 +301,7 @@ def run_single_player_game_online(rfile, wfile):
                 if board.all_ships_sunk():
                     send_board(board)
                     send(f"Congratulations! You sank all ships in {moves} moves.")
+                    gameState = 2 # Game over
                     return
             elif result == 'miss':
                 send("MISS!")
@@ -307,6 +311,8 @@ def run_single_player_game_online(rfile, wfile):
             send(f"Invalid input: {e}")
 
 def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2):
+
+    gameState = 0 # 0 = waiting for player to place ships, 1 = game in progress, 2 = game over
 
     def send(msg,player):
         if player == 1:
@@ -351,9 +357,17 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2):
     send("Welcome to Online Multi-Player Battleship! Try to sink all the ships. Type 'quit' to exit.",1)
     send("Welcome to Online Multi-Player Battleship! Try to sink all the ships. Type 'quit' to exit.",2)
 
-    if True: #REMOVE LATER!!!!!!!!!!!!!! TODO:
+    testing = False 
+
+    if testing: #REMOVE LATER!!!!!!!!!!!!!!????????????????
         player1_board.place_ships_randomly(SHIPS)
         player2_board.place_ships_randomly(SHIPS)
+
+    else:
+        player1_board.place_ships_manually(SHIPS)
+        player2_board.place_ships_manually(SHIPS) 
+
+    gameState = 1 # Game state is now in progress 
 
     # Player 1 starts off
     current_player = 1
@@ -383,6 +397,7 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2):
         if guess.lower() == 'quit':
             send(f"Player {current_player} forfeits! Player {3 - current_player} wins!", current_player)
             send(f"Player {current_player} forfeits! Player {3 - current_player} wins!", 3 - current_player)
+            gameState = 2 # Game over
             break
 
         try:
@@ -402,13 +417,13 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2):
             # Check if the opponent has lost all ships
             if opponent_board.all_ships_sunk():
                 send(f"\nPlayer {current_player} wins! All ships have been sunk.", current_player)
+                gameState = 2 # Game over
                 break
 
             # Switch turns between Player 1 and Player 2
             current_player = 3 - current_player
         except ValueError as e:
             send("  Invalid input, better luck next shot...", current_player)
-
 
 
 
