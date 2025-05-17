@@ -48,23 +48,51 @@ def multi_client(conn1, addr1, conn2, addr2):
 
 
 #TASK 1.4 ----------------------------------------------------------------------------------
-def listen2Client(rfile, wfile): #to deal with the client msgs (focusing on 1 player for now)
+def clientListener(rfile, wfile): 
+        #to deal with the client msgs
 
-        line = line.strip()
-        logger.debug(f"[INFO] Received from client: {line}")
+    while True:
+        line = rfile.readline()
+        if not line:
+            print("[INFO] Server disconnected.")
+            break
 
-        # Client should ensure no invalid commands are sent (I THINK IDK HOW IT WORKS FULLY)
-        if line.startswith("Fire at"):
-            target = line[8:]  # Everything after "Fire at "
-                               # May want to change to split line then take the last element
-            logger.debug(f"[ACTION] Player fired at {target}")
-                
-            # You could respond back to the client:
-            wfile.write(f"Received fire command at {target}\n")
+        logger.debug(f"[INFO] Received message from client: {line}")
+
+        #PLACE MESSAGE RECIEVED (e.g., "Place ship at A1")
+        if line.startswith("Place"):
+            location = line.split()[-1]  # Assuming the format "Place ship at [location]"
+            logger.debug(f"[INFO] Placing ship at {location}")
+
+            # Respond with a successful placement message
+            response = f"Successfully placed ship at {location}"
+            wfile.write(response + '\n')
             wfile.flush()
-            
+            logger.debug(f"[INFO] Sent to client: {response}")
+
+        #FIRE MESSAGE RECIEVED (e.g., "Fire at A1")
+        elif line.startswith("Fire at"):
+            # Extract the target location (e.g., "Fire at A1")
+            target = line[8:]  # Everything after "Fire at "
+            logger.debug(f"[INFO] Player fired at {target}")
+
+            # For now, let's assume the server sends a random hit/miss result
+            # REPLACE with game logic
+            result = "HIT" if target == "A1" else "MISS"  # Example REMOVE LATER
+            response = f"RESULT {result}"
+
+            # Send the result back to the client
+            wfile.write(response + '\n')
+            wfile.flush()
+            logger.debug(f"[INFO] Sent to client: {response}")
+
         else:
-            print(f"[WARNING] Unknown command: {line}")
+            #invalid command received?? - NOT sure if this would happen but this is just in case 
+            logger.warning(f"[WARNING] Unknown command received: {line}")
+            response = "Invalid command. Try again."
+            wfile.write(response + '\n')
+            wfile.flush()
+            logger.debug(f"[INFO] Sent to client: {response}")
 
 
 
