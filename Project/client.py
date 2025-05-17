@@ -12,8 +12,6 @@ import threading
 
 import sys
 
-gamestate = 0 # this will be updated based on battleship.py
-
 def flush_input():
     try:
         import termios  # Unix

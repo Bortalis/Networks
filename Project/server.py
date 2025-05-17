@@ -8,6 +8,7 @@ Client sends FIRE commands, and receives game feedback.
 
 """
 
+import time
 import socket
 import threading
 import logging
@@ -17,9 +18,9 @@ from battleship import run_multi_player_game_online
 gamestate_ref = [0] 
 #This is contained in the gamestate_ref list so that it can be passed by reference
 # this will be updated based on battleship.py 
-#all games will start in the placement phase = 0
-#firing phase = 1
-#game over = 2
+# all games will start in the placement phase = 0
+# firing phase = 1
+# game over = 2
 
 
 HOST = '127.0.0.1'
