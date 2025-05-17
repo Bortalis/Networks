@@ -113,9 +113,6 @@ def send2Server(user_input,WriteMsgTo):
         WriteMsgTo.write(messsage + '\n')
         WriteMsgTo.flush()
         return
-
-#how can I send this to server? - rfile.write
-#how can I get server to understand it
         
 
 def listen2Server():

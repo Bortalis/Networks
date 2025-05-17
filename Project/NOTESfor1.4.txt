@@ -10,13 +10,8 @@ FIRE = "FIRE B5"
 PLACE = "PLACE A1 H BATTLESHIP"
 
 
-#SERVER SIDE ------
-#recieves
-FIRE 
-PLACE
-#sends
+#SERVER SIDE #sends
 RESULT
-BOARD
 
 
 
@@ -28,5 +23,15 @@ if input (a,1) >> FIRE server
 #example of how the server would send a message to the client
 if line.startswith("RESULT"):
     print(f"Shot result: {line.split()[1]}")  # "MISS" or "HIT"
+
+
+#TODO
+- check in firing or placing
+    - get the game to send out some variable that can be checked
+
+- hit and miss detection
+    - also needs a result from the game somehow
+
+- tie it all together.
 
 
