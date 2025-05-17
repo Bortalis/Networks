@@ -23,8 +23,7 @@ def flush_input(): #removes up any buffered up input
     while msvcrt.kbhit():
         msvcrt.getch()
 
-def quick_time_event():
-    #30 second timeout
+def quick_time_event(): #30 second timeout for inputs
     timeout = 30
     print(end='', flush=True)
     start_time = time.time()
@@ -79,7 +78,6 @@ def main():
         rfile = s.makefile('r')
         wfile = s.makefile('w')
 
-
     print("\n[INFO] Successfully connected to Server")
     # Start a thread for receiving messages
     sv_side = threading.Thread(target=receive_messages,args=(rfile,),daemon=True)
@@ -87,21 +85,16 @@ def main():
 
     # Main thread handles sending user input
     try:
-
         while not server_disc.is_set():  # There is a connection to the sever
             if not now_sending.is_set(): # The sever is done sending messages
                 flush_input() 
-
                 user_input = quick_time_event()
-
                 wfile.write(user_input + '\n')
                 wfile.flush()
                 now_sending.set() # Server's turn to send a messages
-
     except KeyboardInterrupt:
         now_sending.set() # Unblocks the wait
         print("\n[INFO] Client exiting.")
     
-
 if __name__ == "__main__":
     main()
