@@ -41,6 +41,13 @@ now_sending = threading.Event() # Is true while the sever is sending lines
 now_sending.set() # The server starts first
 
 
+def send_messages(wfile,message):
+        wfile.write(message + '\n')
+        wfile.flush()
+        print(f"[INFO] Sent to server: {message}")
+        return
+
+
 def receive_messages(rfile):
     """Continuously receive and display messages from the server"""
     while True:
@@ -65,9 +72,19 @@ def receive_messages(rfile):
         else:
             # Normal message
             print(line)
-            if line == '>>': # True when ">> " is the line TODO: Not a very secure method of checking
-                now_sending.clear() # Time for User input
-                now_sending.wait(timeout=None) # Wait until the user has sent ther input
+            #if line == '>>': # True when ">> " is the line TODO: Not a very secure method of checking
+            #    now_sending.clear() # Time for User input
+            #    now_sending.wait(timeout=None) # Wait until the user has sent ther input
+
+            # TASK4.1 process the server's responses, for example:
+            if line == 'RESULT MISS':
+                print("[INFO] The shot was a miss!")
+            elif line == 'RESULT HIT':
+                print("[INFO] The shot was a hit!")
+            elif line == '>>':  # Time for user input
+                now_sending.clear() 
+                now_sending.wait(timeout=None)  # Wait for the user to send input
+        
 
 
 def main():
@@ -90,14 +107,21 @@ def main():
             if not now_sending.is_set(): # The sever is done sending messages
                 flush_input() #eats up any buffed input
                 user_input = input()
-                wfile.write(user_input + '\n')
-                wfile.flush()
+
+                #wfile.write(user_input + '\n')
+                #wfile.flush()
+
+                #FOR TASK 1.4
+                send_messages(wfile, user_input)
+
+
                 now_sending.set() # Server's turn to send a messages
 
     except KeyboardInterrupt:
         now_sending.set() # Unblocks the wait
         print("\n[INFO] Client exiting.")
-    
+
+         
 
 if __name__ == "__main__":
     main()

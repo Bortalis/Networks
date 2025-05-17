@@ -1,0 +1,37 @@
+#This is for the messages between the server and client
+#SET UP FOR TASK 1.4
+
+#What does the client recieve? -------------
+RESULT = "RESULT HIT/MISS"
+BOARD = "send updated board"
+
+#client sends
+FIRE = "FIRE B5"
+PLACE = "PLACE A1 H BATTLESHIP"
+
+
+#SERVER SIDE #sends
+RESULT
+
+
+
+
+line = 'B5'
+
+if input (a,1) >> FIRE server 
+
+#example of how the server would send a message to the client
+if line.startswith("RESULT"):
+    print(f"Shot result: {line.split()[1]}")  # "MISS" or "HIT"
+
+
+#TODO
+- check in firing or placing
+    - get the game to send out some variable that can be checked
+
+- hit and miss detection
+    - also needs a result from the game somehow
+
+- tie it all together.
+
+
