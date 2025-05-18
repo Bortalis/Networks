@@ -43,35 +43,28 @@ def multi_client(player1, player2):
     players.clear()
     #put players back in the queue
     logger.debug(con1,con2)
+    #remove and free any broken connections
     if con1:
         put_in_queue(player1)
     else:
-        try:
-            player1[3].flush()
+        try: player1[3].flush()
         except: pass
-        try:
-            player1[2].close()
+        try: player1[2].close()
         except: pass
-        try:
-            player1[3].close()
+        try: player1[3].close()
         except: pass
-        try:
-            player1[0].close()
+        try: player1[0].close()
         except: pass
     if con2:
         put_in_queue(player2)
     else:
-        try:
-            player2[3].flush()
+        try: player2[3].flush()
         except: pass
-        try:
-            player2[2].close()
+        try: player2[2].close()
         except: pass
-        try:
-            player2[3].close()
+        try: player2[3].close()
         except: pass
-        try:
-            player2[0].close()
+        try: player2[0].close()
         except: pass
         
 

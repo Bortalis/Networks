@@ -1,5 +1,6 @@
 
 import random
+import select
 import logging #requires this to send messages to the server log, as the game is run on server side
 
 logger = logging.getLogger(__name__)
@@ -245,9 +246,17 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
         send(">>",player)
         try:
             if player == 1:
-                mail =  rfile1.readline().strip().upper()
+                ready, _, _ = select.select([rfile1], [], [], 10)  # 10 second timeout
+                if ready:
+                    mail = rfile1.readline().strip().upper()
+                else:
+                    mail = ''
             else:
-                mail =  rfile2.readline().strip().upper()
+                ready, _, _ = select.select([rfile2], [], [], 10)
+                if ready:
+                    mail = rfile2.readline().strip().upper()
+                else:
+                    mail = ''
         except Exception:
             if player == 1:
                 connected1 = False
@@ -310,8 +319,8 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
                     send(f"[!] Cannot place {ship_name} at {coord_str} (orientation={orientation_str}). Try again.",player)
         return False
 
-    send("Welcome to Online Multi-Player Battleship! Try to sink all the ships. Type 'quit' to exit.",1)
-    send("Welcome to Online Multi-Player Battleship! Try to sink all the ships. Type 'quit' to exit.",2)
+    send("Welcome Player1! Try to sink all the ships. Type 'quit' to exit.",1)
+    send("Welcome Player2! Try to sink all the ships. Type 'quit' to exit.",2)
 
     gameState_ref[0] = 0 # Waiting for player to place ships
     logger.debug("[GAME STATE] Multiplayer: Starting placement phase")
@@ -413,7 +422,6 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
         logger.debug(f"[GAME STATE] Multiplayer: Player {current_player} quit - Game over")
         send("Returning to lobby",1)
         send("Returning to lobby",2)
-        return connected1, connected2
     elif not connected2:
         send("Player 2 has lost connection, ending match",1)
     elif not connected1:
@@ -429,11 +437,10 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
             else:
                 send("Returning to lobby",1)
                 send("Returning to lobby",2)
-                return connected1, connected2
         else:
             send("Returning to lobby",1)
             send("Returning to lobby",2)
-            return connected1, connected2
+    return connected1, connected2
     
 
 
