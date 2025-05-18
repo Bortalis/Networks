@@ -56,15 +56,41 @@ def main():
             while True:
                 conn, addr = s.accept()
                 logger.debug(f"[INFO] Client connected from {addr}")
+
+                # If a game is in progress, immediately notify the client and do not add to queue
+                if len(players) == 2:
+                    try:
+                        wfile = conn.makefile('w')
+                        wfile.write("WAITING: Game in progress, please wait for it to end...\n")
+                        wfile.flush()
+                    except Exception as e:
+                        logger.debug(f"[ERROR] Failed to communicate with waiting client: {e}")
+                    continue  # Skip the rest of the loop for this client
+
+
+                # Only add to queue if not in-game
+
                 queue.append((conn,addr)) #we keep their addr for id for T3.3
 
-                if len(queue) >= 2:
+                if len(queue) < 2: # Notify client if waiting for opponent
+                    try:
+                            wfile = conn.makefile('w')
+                            wfile.write("WAITING: Hold on until another player to join...\n")
+                            wfile.flush()
+                    except Exception as e:
+                        logger.debug(f"[ERROR] Failed to commiunicate with waiting client: {e}")
+
+                # Start a game with the first two clients in the queue, given no game is running
+                if len(queue) >= 2 and len(players) == 0: 
                     client_thread = threading.Thread(target=multi_client, args=(queue[0][0], queue[1][0]), daemon=True)
                     players.append(queue[0])
-                    players.append(queue[0])
+                    players.append(queue[0]) #I DON'T KNOW IF THIS IS SUPPOSED TO BE QUEUE[1]??????
 
                     client_thread.start()
                     threads.append(client_thread)
+
+                # Remove that pair of clients from queue
+                    queue = queue[2:]
 
     except Exception as e:
         logger.exception("I don't even know what went wrong in this case",stack_info = True)
