@@ -27,11 +27,18 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-def multi_client(conn1, conn2):
+game_running = threading.Event()
+
+def multi_client(player1, player2):
+
+    logger.debug("whats0")
+    conn1 = player1[0]
+    conn2 = player2[0]
     rfile1 = conn1.makefile('r')
     wfile1 = conn1.makefile('w')
     rfile2 = conn2.makefile('r')
     wfile2 = conn2.makefile('w')
+    logger.debug("whats1")
 
     # Start threads to send game state updates to the clients
     gamestate_thread_P1 = threading.Thread(target=monitor_and_send_gamestate, args=(wfile1, gamestate_ref), daemon=True)
@@ -41,8 +48,19 @@ def multi_client(conn1, conn2):
 
     run_multi_player_game_online(rfile1,wfile1,rfile2,wfile2, gamestate_ref)
 
-    #do they wish to join back in the queue?
 
+    rfile1.close()
+    wfile1.close()
+    rfile2.close()
+    wfile2.close()
+    conn1.close()
+    conn2.close()
+
+    #put players back in the queue
+    queue.append(player1)
+    queue.append(player2)
+
+    game_running.clear()
 
 
 queue = [] #players waiting for an opponent
@@ -50,8 +68,6 @@ players = [] #players playing
 
 def main():
     try:
-        threads = [] # keeps track of threads
-
         logger.debug(f"[INFO] Server listening on {HOST}:{PORT}")
 
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -61,16 +77,14 @@ def main():
             while True:
                 conn, addr = s.accept()
                 logger.debug(f"[INFO] Client connected from {addr}")
-                queue.append((conn,addr)) #we keep their addr for id for T3.3
+                queue.append((conn,addr)) #keep their addr for id for T3.3?
 
-                if len(queue) >= 2:
-                    client_thread = threading.Thread(target=multi_client, args=(queue[0][0], queue[1][0]), daemon=True)
-                    players.append((queue[0],queue[1]))
+                if len(queue) >= 2 and not game_running.is_set():
+                    client_thread = threading.Thread(target=multi_client, args=(queue[0], queue[1]), daemon=True)
                     queue.pop(0)
                     queue.pop(0)
-
+                    game_running.set()
                     client_thread.start()
-                    threads.append(client_thread)
 
     except Exception as e:
         logger.exception("I don't even know what went wrong in this case",stack_info = True)

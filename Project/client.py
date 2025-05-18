@@ -9,29 +9,13 @@ import socket
 import threading
 import time
 import msvcrt
-import sys
+
 
 gameState = 0 #gameState the client understands
 
 def flush_input():
-    try:
-        import termios  # Unix
-        import tty
-        import select
-
-        while True:
-            dr, dw, de = select.select([sys.stdin], [], [], 0)
-            if dr:
-                sys.stdin.read(1)
-            else:
-                break
-    except ImportError:
-        # Windows
-        import msvcrt
-        while msvcrt.kbhit():
-            msvcrt.getch()
-
-
+    while msvcrt.kbhit():
+        msvcrt.getch()
 
 HOST = '127.0.0.1'
 PORT = 5000
