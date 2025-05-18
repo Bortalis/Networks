@@ -1,11 +1,7 @@
 """
 server.py
-
-Serves a single-player Battleship session to one connected client.
 Game logic is handled entirely on the server using battleship.py.
 Client sends FIRE commands, and receives game feedback.
-
-
 """
 
 import time
