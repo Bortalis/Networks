@@ -66,19 +66,25 @@ def main():
                     client_thread.start()
                     threads.append(client_thread)
 
-                if len(players) >= 2:
-                    break
-
-            for thread in threads: #waits for all players to finish their game before closing
-                thread.join()
-            logger.debug("[INFO] All threads have joined")
-            #remember to close all conn 
-
-
     except Exception as e:
         logger.exception("I don't even know what went wrong in this case",stack_info = True)
 
     logger.debug("[INFO] Server turning off")
+
+
+
+
+#Server should not end for now                    
+#
+#                if len(players) >= 2:
+#                    break
+#
+#            for thread in threads: #waits for all players to finish their game before closing
+#                thread.join()
+#            logger.debug("[INFO] All threads have joined")
+#            #remember to close all conn 
+#
+#
 
 
 #TASK 1.4___________________________________________________________Server Side Function 
@@ -105,8 +111,6 @@ def monitor_and_send_gamestate(wfile, gamestate_ref, interval=2):
             break
 
         time.sleep(interval)
-
-
 
 if __name__ == "__main__":
     main()
