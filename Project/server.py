@@ -36,8 +36,7 @@ def multi_client(player1, player2):
     conn2 = player2[0]
     rfile1 = conn1.makefile('r')
     wfile1 = conn1.makefile('w')
-    rfile2 = conn2.makefile('r')
-    wfile2 = conn2.makefile('w')
+
     logger.debug("whats1")
 
     # Start threads to send game state updates to the clients
@@ -47,14 +46,6 @@ def multi_client(player1, player2):
     gamestate_thread_P2.start()
 
     run_multi_player_game_online(rfile1,wfile1,rfile2,wfile2, gamestate_ref)
-
-
-    rfile1.close()
-    wfile1.close()
-    rfile2.close()
-    wfile2.close()
-    conn1.close()
-    conn2.close()
 
     #put players back in the queue
     queue.append(player1)
@@ -77,6 +68,8 @@ def main():
             while True:
                 conn, addr = s.accept()
                 logger.debug(f"[INFO] Client connected from {addr}")
+
+                
                 queue.append((conn,addr)) #keep their addr for id for T3.3?
 
                 if len(queue) >= 2 and not game_running.is_set():
@@ -104,8 +97,6 @@ def main():
 
 
 #TASK 1.4___________________________________________________________Server Side Function 
-
-
 def monitor_and_send_gamestate(wfile, gamestate_ref, interval=2):
     """
     Periodically sends the game state to the client every 'interval' seconds.
