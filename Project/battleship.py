@@ -430,17 +430,13 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
         gameState_ref[0] = 2 # Game over
         logger.debug(f"[GAME STATE] Multiplayer: Player {current_player} quit - Game over")
 
-    if not quit:
-        send("Would you like a rematch? (Y/N) (0/2 needed)",1)
-        rematch1 = recv(1)
-        if rematch1 != 'N':
-            send("Would you like a rematch? (Y/N) (1/2 needed)",2)
-            rematch2 = recv(2)
-            if rematch2 != 'N':
-                run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref)
-            else:
-                send("Returning to lobby",1)
-                send("Returning to lobby",2)
+    send("Would you like a rematch? (Y/N) (0/2 needed)",1)
+    rematch1 = recv(1)
+    if rematch1 != 'N':
+        send("Would you like a rematch? (Y/N) (1/2 needed)",2)
+        rematch2 = recv(2)
+        if rematch2 != 'N':
+            run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref)
         else:
             send("Returning to lobby",1)
             send("Returning to lobby",2)

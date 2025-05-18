@@ -68,7 +68,7 @@ def put_in_queue(client):
     
     else:
         players.append(queue.pop(0))
-        players.append(queue.pop(1))
+        players.append(queue.pop(0))
         game = threading.Thread(target=multi_client, args=(players[0], players[1]), daemon=True)
         game.start()
 
