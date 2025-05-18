@@ -60,8 +60,8 @@ def main():
 
                 if len(queue) >= 2:
                     client_thread = threading.Thread(target=multi_client, args=(queue[0][0], queue[1][0]), daemon=True)
-                    players.append(queue[0])
-                    players.append(queue[0])
+                    players.append(queue.pop(0))
+                    players.append(queue.pop(0))
 
                     client_thread.start()
                     threads.append(client_thread)

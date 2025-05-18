@@ -1,11 +1,10 @@
 DEBUG:__main__:[INFO] Server listening on 127.0.0.1:5000
-DEBUG:__main__:[INFO] Client connected from ('127.0.0.1', 52300)
-DEBUG:__main__:[INFO] Client connected from ('127.0.0.1', 52301)
+DEBUG:__main__:[INFO] Client connected from ('127.0.0.1', 52668)
+DEBUG:__main__:[INFO] Client connected from ('127.0.0.1', 52669)
 DEBUG:battleship:[GAME STATE] Multiplayer: Starting placement phase
+DEBUG:__main__:[INFO] Client connected from ('127.0.0.1', 52672)
+DEBUG:__main__:[INFO] Client connected from ('127.0.0.1', 52673)
+DEBUG:battleship:[GAME STATE] Multiplayer: Starting placement phase
+DEBUG:battleship:[GAME STATE] Multiplayer: Transition to firing phase
 DEBUG:battleship:[GAME STATE] Multiplayer: Transition to firing phase
 DEBUG:battleship:[GAME STATE] Multiplayer: Player 1 quit - Game over
-DEBUG:battleship:[GAME STATE] Multiplayer: Starting placement phase
-DEBUG:battleship:[GAME STATE] Multiplayer: Transition to firing phase
-DEBUG:battleship:[GAME STATE] Multiplayer: Player 2 quit - Game over
-DEBUG:__main__:[INFO] All threads have joined
-DEBUG:__main__:[INFO] Server turning off
