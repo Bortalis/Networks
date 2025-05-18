@@ -4,7 +4,6 @@ import logging #requires this to send messages to the server log, as the game is
 
 logger = logging.getLogger(__name__)
 
-
 BOARD_SIZE = 10
 SHIPS = [
     ("Carrier", 5),
@@ -13,7 +12,6 @@ SHIPS = [
     ("Submarine", 3),
     ("Destroyer", 2)
 ]
-
 
 class Board:
     """
@@ -63,45 +61,6 @@ class Board:
                         'positions': occupied_positions
                     })
                     placed = True
-
-    def place_ships_manually(self, ships=SHIPS):
-        """
-        Prompt the user for each ship's starting coordinate and orientation (H or V).
-        Validates the placement; if invalid, re-prompts.
-        """
-        print("\nPlease place your ships manually on the board.")
-        for ship_name, ship_size in ships:
-            while True:
-                self.print_display_grid(show_hidden_board=True)
-                print(f"\nPlacing your {ship_name} (size {ship_size}).")
-                coord_str = input("  Enter starting coordinate (e.g. A1): ").strip()
-                orientation_str = input("  Orientation? Enter 'H' (horizontal) or 'V' (vertical): ").strip().upper()
-
-                try:
-                    row, col = parse_coordinate(coord_str)
-                except ValueError as e:
-                    print(f"  [!] Invalid coordinate: {e}")
-                    continue
-
-                # Convert orientation_str to 0 (horizontal) or 1 (vertical)
-                if orientation_str == 'H':
-                    orientation = 0
-                elif orientation_str == 'V':
-                    orientation = 1
-                else:
-                    print("  [!] Invalid orientation. Please enter 'H' or 'V'.")
-                    continue
-
-                # Check if we can place the ship
-                if self.can_place_ship(row, col, ship_size, orientation):
-                    occupied_positions = self.do_place_ship(row, col, ship_size, orientation)
-                    self.placed_ships.append({
-                        'name': ship_name,
-                        'positions': occupied_positions
-                    })
-                    break
-                else:
-                    print(f"  [!] Cannot place {ship_name} at {coord_str} (orientation={orientation_str}). Try again.")
 
     def can_place_ship(self, row, col, ship_size, orientation):
         """
@@ -244,18 +203,22 @@ def parse_coordinate(coord_str):
     return (row, col)
 
 def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
+    
+    global connected1
+    global connected2
+    connected1 = True
+    connected2 = True
 
-    def send(msg,player):
-        if player == 1:
-            wfile1.write(msg + '\n')
-            wfile1.flush()
-        else:
-            wfile2.write(msg + '\n')
-            wfile2.flush()
+    def send(msg,player):    
+            if player == 1:
+                wfile1.write(msg + '\n')
+                wfile1.flush()
+            else:
+                wfile2.write(msg + '\n')
+                wfile2.flush()
             
     def send_board(board, player, show_hidden = False):
         grid = board.hidden_grid if show_hidden else board.display_grid
-
         if player == 1:
             wfile1.write("GRID\n")
             wfile1.write("_|" + " ".join(str(i + 1).rjust(2) for i in range(board.size)) + '\n')
@@ -276,11 +239,23 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
             wfile2.flush()
 
     def recv(player):
+        global connected1
+        global connected2
+
         send(">>",player)
         if player == 1:
-            return rfile1.readline().strip().upper()
+            mail =  rfile1.readline().strip().upper()
         else:
-            return rfile2.readline().strip().upper()
+            mail =  rfile2.readline().strip().upper()
+
+        if not mail or mail == '':
+            if player == 1:
+                connected1 = False
+            else:
+                connected2 = False
+            return "QUIT"
+        else:
+            return mail
     
     def place_ships_remotely(bd, player, ships=SHIPS):
         """
@@ -391,7 +366,7 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
         guess = recv(current_player)
 
 
-        if guess.lower() == 'quit':
+        if guess == 'QUIT':
             quit = True
             break
 
@@ -429,20 +404,25 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
         send(f"Player {current_player} forfeits! Player {3 - current_player} wins!", 3 - current_player)
         gameState_ref[0] = 2 # Game over
         logger.debug(f"[GAME STATE] Multiplayer: Player {current_player} quit - Game over")
-
-    send("Would you like a rematch? (Y/N) (0/2 needed)",1)
-    rematch1 = recv(1)
-    if rematch1 != 'N':
-        send("Would you like a rematch? (Y/N) (1/2 needed)",2)
-        rematch2 = recv(2)
-        if rematch2 != 'N':
-            run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref)
+        send("Returning to lobby",1)
+        send("Returning to lobby",2)
+        return connected1, connected2
+    else:
+        send("Would you like a rematch? (Y/N) (0/2 needed)",1)
+        rematch1 = recv(1)
+        if rematch1 != 'N':
+            send("Would you like a rematch? (Y/N) (1/2 needed)",2)
+            rematch2 = recv(2)
+            if rematch2 != 'N':
+                run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref)
+            else:
+                send("Returning to lobby",1)
+                send("Returning to lobby",2)
+                return connected1, connected2
         else:
             send("Returning to lobby",1)
             send("Returning to lobby",2)
-    else:
-        send("Returning to lobby",1)
-        send("Returning to lobby",2)
+            return connected1, connected2
     
 
 

@@ -30,21 +30,41 @@ logger = logging.getLogger(__name__)
 game_running = threading.Event()
 
 def multi_client(player1, player2):
-    logger.debug(f"{player1}")
-    logger.debug(f"{player2}")
-    logger.debug("1")
+
     # Start threads to send game state updates to the clients
     gamestate_thread_P1 = threading.Thread(target=monitor_and_send_gamestate, args=(player1[3], gamestate_ref), daemon=True)
     gamestate_thread_P2 = threading.Thread(target=monitor_and_send_gamestate, args=(player2[3], gamestate_ref), daemon=True)
     gamestate_thread_P1.start()
     gamestate_thread_P2.start()
-    logger.debug("2")
-    run_multi_player_game_online(player1[2],player1[3],player2[2],player2[3], gamestate_ref)
-    logger.debug("3")
+
+    #check if connections are still intact
+    con1, con2 = run_multi_player_game_online(player1[2],player1[3],player2[2],player2[3], gamestate_ref)
+
     players.clear()
     #put players back in the queue
-    put_in_queue(player1)
-    put_in_queue(player2)
+    logger.debug(con1,con2)
+    if con1:
+        put_in_queue(player1)
+    else:
+        try:
+            player1[3].flush()
+            player1[2].close()
+            player1[3].close()
+        except:
+            pass
+        player1[0].close
+    if con2:
+        put_in_queue(player2)
+    else:
+        try:
+            player2[3].flush()
+            player2[2].close()
+            player2[3].close()
+        except:
+            pass
+        player2[0].close
+        
+
 
 
 
@@ -93,7 +113,6 @@ def main():
         logger.exception("I don't even know what went wrong in this case",stack_info = True)
 
     logger.debug("[INFO] Server turning off")
-
 
 
 #TASK 1.4___________________________________________________________Server Side Function 

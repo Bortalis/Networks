@@ -1,18 +1,12 @@
 DEBUG:__main__:[INFO] Server listening on 127.0.0.1:5000
-DEBUG:__main__:[INFO] Client connected from ('127.0.0.1', 58442)
-DEBUG:__main__:[INFO] Client connected from ('127.0.0.1', 58443)
-DEBUG:__main__:(<socket.socket fd=1176, family=2, type=1, proto=0, laddr=('127.0.0.1', 5000), raddr=('127.0.0.1', 58443)>, ('127.0.0.1', 58443), <_io.TextIOWrapper name=1176 mode='r' encoding='cp1252'>, <_io.TextIOWrapper name=1176 mode='w' encoding='cp1252'>)
-DEBUG:__main__:(<socket.socket fd=1084, family=2, type=1, proto=0, laddr=('127.0.0.1', 5000), raddr=('127.0.0.1', 58442)>, ('127.0.0.1', 58442), <_io.TextIOWrapper name=1084 mode='r' encoding='cp1252'>, <_io.TextIOWrapper name=1084 mode='w' encoding='cp1252'>)
-DEBUG:__main__:1
-DEBUG:__main__:2
+DEBUG:__main__:[INFO] Client connected from ('127.0.0.1', 59805)
+DEBUG:__main__:[INFO] Client connected from ('127.0.0.1', 59807)
 DEBUG:battleship:[GAME STATE] Multiplayer: Starting placement phase
 DEBUG:battleship:[GAME STATE] Multiplayer: Transition to firing phase
-DEBUG:__main__:[INFO] Client connected from ('127.0.0.1', 58448)
 DEBUG:battleship:[GAME STATE] Multiplayer: Player 1 quit - Game over
-DEBUG:__main__:3
-DEBUG:__main__:(<socket.socket fd=1176, family=2, type=1, proto=0, laddr=('127.0.0.1', 5000), raddr=('127.0.0.1', 58443)>, ('127.0.0.1', 58443), <_io.TextIOWrapper name=1176 mode='r' encoding='cp1252'>, <_io.TextIOWrapper name=1176 mode='w' encoding='cp1252'>)
-DEBUG:__main__:(<socket.socket fd=1032, family=2, type=1, proto=0, laddr=('127.0.0.1', 5000), raddr=('127.0.0.1', 58448)>, ('127.0.0.1', 58448), <_io.TextIOWrapper name=1032 mode='r' encoding='cp1252'>, <_io.TextIOWrapper name=1032 mode='w' encoding='cp1252'>)
-DEBUG:__main__:1
-DEBUG:__main__:2
+DEBUG:__main__:[ERROR] Failed to send gamestate to client: I/O operation on closed file.
+DEBUG:__main__:[INFO] Client connected from ('127.0.0.1', 59813)
 DEBUG:battleship:[GAME STATE] Multiplayer: Starting placement phase
 DEBUG:battleship:[GAME STATE] Multiplayer: Transition to firing phase
+DEBUG:battleship:[GAME STATE] Multiplayer: Player 1 quit - Game over
+DEBUG:battleship:[GAME STATE] Multiplayer: Starting placement phase

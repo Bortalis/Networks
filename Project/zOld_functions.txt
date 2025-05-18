@@ -213,3 +213,42 @@ def run_single_player_game_online(rfile, wfile, gameState_ref):
                 send("You've already fired at that location.")
         except ValueError as e:
             send(f"Invalid input: {e}")
+
+    def place_ships_manually(self, ships=SHIPS):
+        """
+        Prompt the user for each ship's starting coordinate and orientation (H or V).
+        Validates the placement; if invalid, re-prompts.
+        """
+        print("\nPlease place your ships manually on the board.")
+        for ship_name, ship_size in ships:
+            while True:
+                self.print_display_grid(show_hidden_board=True)
+                print(f"\nPlacing your {ship_name} (size {ship_size}).")
+                coord_str = input("  Enter starting coordinate (e.g. A1): ").strip()
+                orientation_str = input("  Orientation? Enter 'H' (horizontal) or 'V' (vertical): ").strip().upper()
+
+                try:
+                    row, col = parse_coordinate(coord_str)
+                except ValueError as e:
+                    print(f"  [!] Invalid coordinate: {e}")
+                    continue
+
+                # Convert orientation_str to 0 (horizontal) or 1 (vertical)
+                if orientation_str == 'H':
+                    orientation = 0
+                elif orientation_str == 'V':
+                    orientation = 1
+                else:
+                    print("  [!] Invalid orientation. Please enter 'H' or 'V'.")
+                    continue
+
+                # Check if we can place the ship
+                if self.can_place_ship(row, col, ship_size, orientation):
+                    occupied_positions = self.do_place_ship(row, col, ship_size, orientation)
+                    self.placed_ships.append({
+                        'name': ship_name,
+                        'positions': occupied_positions
+                    })
+                    break
+                else:
+                    print(f"  [!] Cannot place {ship_name} at {coord_str} (orientation={orientation_str}). Try again.")
