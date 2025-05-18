@@ -65,7 +65,7 @@ def quick_time_event(): #30 second timeout for inputs
                 print(char, end='', flush=True)
         if time.time() - start_time > timeout:
             print("\nTimed out!")
-            return "quit"
+            return "QUIT"
         time.sleep(0.05) # we want to check every so often, but not so often that it strains performance
     print(flush=True) # used as a new line
     return input_str
@@ -120,8 +120,8 @@ def main():
 
     # Main thread handles sending user input
     try:
-        while not server_disc.is_set():  # There is a connection to the sever
-            if not now_sending.is_set(): # The sever is done sending messages
+        while not server_disc.is_set():  # There is a connection to the server
+            if not now_sending.is_set(): # The server is done sending messages
 
                 flush_input() 
                 user_input = quick_time_event()

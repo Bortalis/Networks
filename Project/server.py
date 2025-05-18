@@ -41,6 +41,12 @@ def multi_client(conn1, conn2):
 
     run_multi_player_game_online(rfile1,wfile1,rfile2,wfile2, gamestate_ref)
 
+    #do they wish to join back in the queue?
+
+
+
+queue = [] #players waiting for an opponent
+players = [] #players playing
 
 def main():
     try:
@@ -49,8 +55,7 @@ def main():
         logger.debug(f"[INFO] Server listening on {HOST}:{PORT}")
 
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            queue = [] #players waiting for an opponent
-            players = [] #players playing
+            
             s.bind((HOST, PORT))
             s.listen()
             while True:
@@ -60,8 +65,9 @@ def main():
 
                 if len(queue) >= 2:
                     client_thread = threading.Thread(target=multi_client, args=(queue[0][0], queue[1][0]), daemon=True)
-                    players.append(queue.pop(0))
-                    players.append(queue.pop(0))
+                    players.append((queue[0],queue[1]))
+                    queue.pop(0)
+                    queue.pop(0)
 
                     client_thread.start()
                     threads.append(client_thread)
@@ -75,16 +81,12 @@ def main():
 
 
 #Server should not end for now                    
-#
 #                if len(players) >= 2:
 #                    break
-#
 #            for thread in threads: #waits for all players to finish their game before closing
 #                thread.join()
 #            logger.debug("[INFO] All threads have joined")
 #            #remember to close all conn 
-#
-#
 
 
 #TASK 1.4___________________________________________________________Server Side Function 
