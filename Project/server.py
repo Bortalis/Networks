@@ -29,8 +29,28 @@ logger = logging.getLogger(__name__)
 
 game_running = threading.Event()
 
+def multi_client(player1, player2):
+    logger.debug(f"{player1}")
+    logger.debug(f"{player2}")
+    logger.debug("1")
+    # Start threads to send game state updates to the clients
+    gamestate_thread_P1 = threading.Thread(target=monitor_and_send_gamestate, args=(player1[3], gamestate_ref), daemon=True)
+    gamestate_thread_P2 = threading.Thread(target=monitor_and_send_gamestate, args=(player2[3], gamestate_ref), daemon=True)
+    gamestate_thread_P1.start()
+    gamestate_thread_P2.start()
+    logger.debug("2")
+    run_multi_player_game_online(player1[2],player1[3],player2[2],player2[3], gamestate_ref)
+    logger.debug("3")
+    players.clear()
+    #put players back in the queue
+    put_in_queue(player1)
+    put_in_queue(player2)
+
+
 
 def put_in_queue(client):
+    
+
     def send(msg,cl=client):
         try:
             cl[3].write(msg)
@@ -39,36 +59,18 @@ def put_in_queue(client):
             logger.debug(f"[ERROR] Failed to communicate with waiting client: {e}")
 
     queue.append(client)
-   
-    if len(queue) >= 1:
-        if len(players) == 2:
-            send("WAITING: Game in progress, please wait for it to end...\n") 
-        elif len(players) == 1:
-            players.append(queue.pop(0))
-        else:
-            players.append(queue.pop(0))
-            if len(queue) >= 1:
-                players.append(queue.pop(0))
-                multi_client = threading.Thread(target=multi_client, args=(players[0], players[1]), daemon=True)
-                multi_client.start()
-    else:
+
+    if len(queue) < 2:
         send("WAITING: Hold on until another player to join...\n")
-
-def multi_client(player1, player2):
-
-    # Start threads to send game state updates to the clients
-    gamestate_thread_P1 = threading.Thread(target=monitor_and_send_gamestate, args=(player1[3], gamestate_ref), daemon=True)
-    gamestate_thread_P2 = threading.Thread(target=monitor_and_send_gamestate, args=(player2[3], gamestate_ref), daemon=True)
-    gamestate_thread_P1.start()
-    gamestate_thread_P2.start()
-
-    run_multi_player_game_online(player1[2],player1[3],player2[2],player2[3], gamestate_ref)
-    players.clear()
-    #put players back in the queue
-    put_in_queue(player1)
-    put_in_queue(player2)
-
-
+            
+    elif len(players) == 2:
+        send("WAITING: Game in progress, please wait for it to end...\n")
+    
+    else:
+        players.append(queue.pop(0))
+        players.append(queue.pop(1))
+        game = threading.Thread(target=multi_client, args=(players[0], players[1]), daemon=True)
+        game.start()
 
 
 queue = [] #players waiting for an opponent
@@ -86,8 +88,6 @@ def main():
                 rfile = conn.makefile('r')
                 wfile = conn.makefile('w')
                 put_in_queue((conn, addr, rfile, wfile))
-
-
 
     except Exception as e:
         logger.exception("I don't even know what went wrong in this case",stack_info = True)
