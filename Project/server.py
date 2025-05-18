@@ -29,8 +29,32 @@ logger = logging.getLogger(__name__)
 
 game_running = threading.Event()
 
-def multi_client(player1, player2):
 
+def put_in_queue(client):
+    def send(msg,cl=client):
+        try:
+            cl[3].write(msg)
+            cl[3].flush()
+        except Exception as e:
+            logger.debug(f"[ERROR] Failed to communicate with waiting client: {e}")
+
+    queue.append(client)
+   
+    if len(queue) >= 1:
+        if len(players) == 2:
+            send("WAITING: Game in progress, please wait for it to end...\n") 
+        elif len(players) == 1:
+            players.append(queue.pop(0))
+        else:
+            players.append(queue.pop(0))
+            if len(queue) >= 1:
+                players.append(queue.pop(0))
+                multi_client = threading.Thread(target=multi_client, args=(players[0], players[1]), daemon=True)
+                multi_client.start()
+    else:
+        send("WAITING: Hold on until another player to join...\n")
+
+def multi_client(player1, player2):
 
     # Start threads to send game state updates to the clients
     gamestate_thread_P1 = threading.Thread(target=monitor_and_send_gamestate, args=(player1[3], gamestate_ref), daemon=True)
@@ -39,10 +63,12 @@ def multi_client(player1, player2):
     gamestate_thread_P2.start()
 
     run_multi_player_game_online(player1[2],player1[3],player2[2],player2[3], gamestate_ref)
-
+    players.clear()
     #put players back in the queue
-    queue.append(player1)
-    queue.append(player2)
+    put_in_queue(player1)
+    put_in_queue(player2)
+
+
 
 
 queue = [] #players waiting for an opponent
@@ -51,9 +77,7 @@ players = [] #players playing
 def main():
     try:
         logger.debug(f"[INFO] Server listening on {HOST}:{PORT}")
-
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:   
             s.bind((HOST, PORT))
             s.listen()
             while True:
@@ -61,29 +85,8 @@ def main():
                 logger.debug(f"[INFO] Client connected from {addr}")
                 rfile = conn.makefile('r')
                 wfile = conn.makefile('w')
-                queue.append((conn, addr, rfile, wfile))
+                put_in_queue((conn, addr, rfile, wfile))
 
-                if len(players) == 2:
-                    try:
-                        wfile.write("WAITING: Game in progress, please wait for it to end...\n")
-                        wfile.flush()
-
-                    except Exception as e:
-                        logger.debug(f"[ERROR] Failed to communicate with waiting client: {e}")
-                    continue
-
-                if len(queue) < 2: # Notify client if waiting for opponent
-                    try:
-                        wfile.write("WAITING: Hold on until another player to join...\n")
-                        wfile.flush()
-
-                    except Exception as e:
-                        logger.debug(f"[ERROR] Failed to commiunicate with waiting client: {e}")
-                else:
-                    multi_client = threading.Thread(target=multi_client, args=(queue[0], queue[1]), daemon=True)
-                    multi_client.start()
-                    players.append(queue.pop(0))
-                    players.append(queue.pop(0))
 
 
     except Exception as e:
