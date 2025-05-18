@@ -9,6 +9,29 @@ import socket
 import threading
 import time
 import msvcrt
+import sys
+
+gameState = 0 #gameState the client understands
+
+def flush_input():
+    try:
+        import termios  # Unix
+        import tty
+        import select
+
+        while True:
+            dr, dw, de = select.select([sys.stdin], [], [], 0)
+            if dr:
+                sys.stdin.read(1)
+            else:
+                break
+    except ImportError:
+        # Windows
+        import msvcrt
+        while msvcrt.kbhit():
+            msvcrt.getch()
+
+
 
 HOST = '127.0.0.1'
 PORT = 5000
@@ -49,6 +72,8 @@ def quick_time_event(): #30 second timeout for inputs
 
 def receive_messages(rfile):
     """Continuously receive and display messages from the server"""
+    global gameState
+
     while True:
         line = rfile.readline()
         if not line: # Stops the thread once the server disconnects
@@ -56,6 +81,21 @@ def receive_messages(rfile):
             server_disc.set() # Alerts the main thread that the server disconnected
             break
         
+
+        #if line == "Your turn!":
+            #cls() maybe for later
+
+        # Handle game state changes
+        if line.startswith("STATE:"):
+            try:
+                gameState = int(line.split(":")[1])
+                print(f"[INFO] Game phase is now: {gameState} (0=placing, 1=firing, 2=game over)")
+            except (IndexError, ValueError):
+                print("[WARNING] Received malformed state update from server.")
+            continue  # Skip further processing for this line
+
+        # Process and display the message
+
         line = line.strip()
         if line == "GRID":
             while True:
@@ -69,6 +109,16 @@ def receive_messages(rfile):
             if line == '>>': # True when ">> " is the line TODO: Not a very secure method of checking
                 now_sending.clear() # Time for User input
                 now_sending.wait(timeout=None) # Wait until the user has sent ther input
+
+            # TASK4.1 process the server's responses, for example:
+            #if line == 'RESULT MISS':
+            #    print("[INFO] The shot was a miss!")
+            #elif line == 'RESULT HIT':
+            #    print("[INFO] The shot was a hit!")
+            #elif line == '>>':  # Time for user input
+            #    now_sending.clear() 
+            #    now_sending.wait(timeout=None)  # Wait for the user to send input
+        
 
 
 def main():
@@ -87,14 +137,18 @@ def main():
     try:
         while not server_disc.is_set():  # There is a connection to the sever
             if not now_sending.is_set(): # The sever is done sending messages
+
                 flush_input() 
                 user_input = quick_time_event()
+                
                 wfile.write(user_input + '\n')
                 wfile.flush()
+
+
                 now_sending.set() # Server's turn to send a messages
     except KeyboardInterrupt:
         now_sending.set() # Unblocks the wait
         print("\n[INFO] Client exiting.")
-    
+
 if __name__ == "__main__":
     main()

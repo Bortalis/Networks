@@ -1,5 +1,7 @@
 
 import random
+import logging #requires this to send messages to the server log, as the game is run on server side
+logger = logging.getLogger(__name__)
 
 
 BOARD_SIZE = 10
@@ -245,13 +247,16 @@ def parse_coordinate(coord_str):
 
 
 
-def run_single_player_game_online(rfile, wfile):
+def run_single_player_game_online(rfile, wfile, gameState_ref):
     """
     A test harness for running the single-player game with I/O redirected to socket file objects.
     Expects:
       - rfile: file-like object to .readline() from client
       - wfile: file-like object to .write() back to client
     """
+    gameState_ref[0] = 0 # 0 = waiting for player to place ships
+    logger.debug("[GAME STATE] Single-player: Placement phase")
+
     def send(msg):
         wfile.write(msg + '\n')
         wfile.flush()
@@ -271,7 +276,9 @@ def run_single_player_game_online(rfile, wfile):
         return rfile.readline().strip()
 
     board = Board(BOARD_SIZE)
-    board.place_ships_randomly(SHIPS)
+    board.place_ships_manually(SHIPS)
+    gameState_ref[0] = 1 # Game is in progress, now in firing phase
+    logger.debug("[GAME STATE] Singleplayer: Transition to firing phase")
 
     send("Welcome to Online Single-Player Battleship! Try to sink all the ships. Type 'quit' to exit.")
 
@@ -298,6 +305,8 @@ def run_single_player_game_online(rfile, wfile):
                 if board.all_ships_sunk():
                     send_board(board)
                     send(f"Congratulations! You sank all ships in {moves} moves.")
+                    logger.debug("[GAME STATE] Single-player: All ships sunk — Game over")
+                    gameState_ref[0] = 2 # Game over
                     return
             elif result == 'miss':
                 send("MISS!")
@@ -306,7 +315,10 @@ def run_single_player_game_online(rfile, wfile):
         except ValueError as e:
             send(f"Invalid input: {e}")
 
-def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2):
+def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
+
+    gameState_ref[0] = 0 # 0 = waiting for player to place ships
+    logger.debug("[GAME STATE] Multiplayer: Starting placement phase")
 
     def send(msg,player):
         if player == 1:
@@ -350,9 +362,22 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2):
     send("Welcome to Online Multi-Player Battleship! Try to sink all the ships. Type 'quit' to exit.",1)
     send("Welcome to Online Multi-Player Battleship! Try to sink all the ships. Type 'quit' to exit.",2)
 
-    if True: #REMOVE LATER!!!!!!!!!!!!!! TODO:
+    testing = True 
+
+    if testing: #REMOVE LATER!!!!!!!!!!!!!!????????????????
         player1_board.place_ships_randomly(SHIPS)
         player2_board.place_ships_randomly(SHIPS)
+
+    else:
+        player1_board.place_ships_manually(SHIPS)
+        player2_board.place_ships_manually(SHIPS) 
+
+
+    gameState_ref[0] = 1 # Game state is now in progress 
+    if gameState_ref[0] == 1: #NOTE THIS CHECK IS FOR TESTING, EITHER REMOVE OR APPLY TO ALL GAME STATE CHECKS
+        logger.debug("[GAME STATE] Multiplayer: Transition to firing phase")
+    else:
+        logger.debug("[ERROR] Multiplayer: Game phase didn't update")
 
     # Player 1 starts off
     current_player = 1
@@ -385,6 +410,8 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2):
         if guess.lower() == 'quit':
             send(f"Player {current_player} forfeits! Player {3 - current_player} wins!", current_player)
             send(f"Player {current_player} forfeits! Player {3 - current_player} wins!", 3 - current_player)
+            gameState_ref[0] = 2 # Game over
+            logger.debug(f"[GAME STATE] Multiplayer: Player {current_player} quit - Game over")
             break
 
         try:
@@ -404,13 +431,15 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2):
             # Check if the opponent has lost all ships
             if opponent_board.all_ships_sunk():
                 send(f"\nPlayer {current_player} wins! All ships have been sunk.", current_player)
+                send(f"\nYou lost! All your ships have been sunk.", 3 - current_player)
+                gameState_ref[0] = 2 # Game over
+                logger.debug(f"[GAME STATE] Multiplayer: Player {current_player} wins - Game over")
                 break
 
             # Switch turns between Player 1 and Player 2
             current_player = 3 - current_player
         except ValueError as e:
             send("  Invalid input, better luck next shot...", current_player)
-
 
 
 

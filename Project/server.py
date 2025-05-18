@@ -8,11 +8,20 @@ Client sends FIRE commands, and receives game feedback.
 
 """
 
+import time
 import socket
 import threading
 import logging
 from battleship import run_single_player_game_online
 from battleship import run_multi_player_game_online
+
+gamestate_ref = [0] 
+#This is contained in the gamestate_ref list so that it can be passed by reference
+# this will be updated based on battleship.py 
+# all games will start in the placement phase = 0
+# firing phase = 1
+# game over = 2
+
 
 HOST = '127.0.0.1'
 PORT = 5000
@@ -30,7 +39,12 @@ def single_client(conn, addr):
     with conn:
         rfile = conn.makefile('r')
         wfile = conn.makefile('w')
-        run_single_player_game_online(rfile, wfile)
+
+        # Start a thread to send game state updates to the client
+        gamestate_thread = threading.Thread(target=monitor_and_send_gamestate, args=(wfile, gamestate_ref), daemon=True)
+        gamestate_thread.start()    
+
+        run_single_player_game_online(rfile, wfile, gamestate_ref)
     logger.debug(f"[INFO] Client from {addr} disconnected.")
 
 def multi_client(conn1, addr1, conn2, addr2):
@@ -41,14 +55,18 @@ def multi_client(conn1, addr1, conn2, addr2):
     rfile2 = conn2.makefile('r')
     wfile2 = conn2.makefile('w')
 
-    run_multi_player_game_online(rfile1,wfile1,rfile2,wfile2)
+    # Start a thread to send game state updates to the client
+    gamestate_thread_P1 = threading.Thread(target=monitor_and_send_gamestate, args=(wfile1, gamestate_ref), daemon=True)
+    gamestate_thread_P1.start()
+    # Start a thread to send game state updates to the client
+    gamestate_thread_P2 = threading.Thread(target=monitor_and_send_gamestate, args=(wfile2, gamestate_ref), daemon=True)
+    gamestate_thread_P2.start()
+
+    run_multi_player_game_online(rfile1,wfile1,rfile2,wfile2, gamestate_ref)
 
     conn1.close()
     conn2.close()
 
-
-
-    
 
 
 def main():
@@ -80,6 +98,28 @@ def main():
     logger.debug("Server turning off")
 
 
+#TASK 1.4___________________________________________________________Server Side Function 
+def monitor_and_send_gamestate(wfile, gamestate_ref, interval=2):
+    """
+    Periodically sends the game state to the client every 'interval' seconds.
+    """
+    last_state = None
+    while True:
+        current_state = gamestate_ref[0]
+        if current_state != last_state:
+            try:
+                wfile.write(f"STATE:{current_state}\n")
+                wfile.flush()
+                last_state = current_state
+            except Exception as e:
+                logger.debug(f"[ERROR] Failed to send gamestate to client: {e}")
+                break
+
+        # Exit once the game is over
+        if current_state == 2:
+            break
+
+        time.sleep(interval)
 
 
 
