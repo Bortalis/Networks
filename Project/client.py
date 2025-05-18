@@ -12,6 +12,8 @@ import threading
 
 import sys
 
+gameState = 0 #gameState the client understands
+
 def flush_input():
     try:
         import termios  # Unix
@@ -52,6 +54,15 @@ def receive_messages(rfile):
         
         #if line == "Your turn!":
             #cls() maybe for later
+
+        # Handle game state changes
+        if line.startswith("STATE:"):
+            try:
+                gameState = int(line.split(":")[1])
+                print(f"[INFO] Game phase is now: {gameState} (0=placing, 1=firing, 2=game over)")
+            except (IndexError, ValueError):
+                print("[WARNING] Received malformed state update from server.")
+            continue  # Skip further processing for this line
 
         # Process and display the message
         line = line.strip()
@@ -100,12 +111,13 @@ def main():
             if not now_sending.is_set(): # The sever is done sending messages
                 flush_input() #eats up any buffed input
                 user_input = input()
+                message = None
+
+                #Format the message depending on the state command
+                stateCheck(message,user_input,wfile)
 
                 wfile.write(user_input + '\n')
                 wfile.flush()
-
-                #FOR TASK 1.4
-                #send_messages(wfile, user_input)
 
 
                 now_sending.set() # Server's turn to send a messages
@@ -113,6 +125,23 @@ def main():
     except KeyboardInterrupt:
         now_sending.set() # Unblocks the wait
         print("\n[INFO] Client exiting.")
+
+
+#TASK 1.4___________________________________________________________Client Side Function
+def stateCheck(message,user_input,wfile):
+    """Checks the state of the game and returns the appropriate message"""
+    if gameState == 0: # Game is in the placement phase
+        message = f"PLACE ship at location {user_input}"
+        wfile.write(message + '\n')
+        wfile.flush()
+
+    elif gameState == 1: # Game is in the firing phase
+        message = f"FIRE at location {user_input}"
+        wfile.write(message + '\n')
+        wfile.flush()
+
+    elif gameState == 2: # Game is over
+        return # Do nothing, the game is over
 
          
 
