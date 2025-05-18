@@ -125,7 +125,6 @@ def main():
         now_sending.set() # Unblocks the wait
         print("\n[INFO] Client exiting.")
 
-         
 
 if __name__ == "__main__":
     main()

@@ -1,8 +1,4 @@
-DEBUG:__main__:[INFO] Server listening on 127.0.0.1:5000
-DEBUG:__main__:[INFO] Client connected from ('127.0.0.1', 51812)
-DEBUG:__main__:[INFO] Client connected from ('127.0.0.1', 51813)
-DEBUG:battleship:[GAME STATE] Multiplayer: Starting placement phase
-DEBUG:battleship:[GAME STATE] Multiplayer: Transition to firing phase
-DEBUG:battleship:[GAME STATE] Multiplayer: Player 1 wins — Game over
+DEBUG:__main__:[INFO] Client connected from ('127.0.0.1', 60762)
+DEBUG:__main__:[INFO] Client connected from ('127.0.0.1', 60764)
 DEBUG:__main__:All threads have joined
 DEBUG:__main__:Server turning off
