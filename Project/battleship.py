@@ -278,9 +278,9 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
     def recv(player):
         send(">>",player)
         if player == 1:
-            return rfile1.readline().strip()
+            return rfile1.readline().strip().upper()
         else:
-            return rfile2.readline().strip()
+            return rfile2.readline().strip().upper()
     
     def place_ships_remotely(bd, player, ships=SHIPS):
         """
@@ -295,7 +295,7 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
                 send("  Enter starting coordinate (e.g. A1): ",player)
                 coord_str = recv(player)
                 send("Orientation? Enter 'H' (horizontal) or 'V' (vertical):",player)
-                orientation_str = recv(player).upper()
+                orientation_str = recv(player)
 
                 try:
                     row, col = parse_coordinate(coord_str)
@@ -335,14 +335,14 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
     # Board setup
     send("Other player is now placing their ships",2)   
     send("Place ships manually (M) or randomly (R)? [M/R]: ",1)
-    choice = recv(1).upper()
+    choice = recv(1)
     if choice != 'R':
         place_ships_remotely(player1_board,1,SHIPS)
     else:
         player1_board.place_ships_randomly(SHIPS)
     send("Other player is now placing their ships",1)    
     send("Place ships manually (M) or randomly (R)? [M/R]: ",2)
-    choice = recv(2).upper()
+    choice = recv(2)
     if choice != 'R':
         place_ships_remotely(player2_board,2,SHIPS)
     else:
@@ -355,6 +355,7 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
     gameState_ref[0] = 1 # Game state is now in progress 
     logger.debug("[GAME STATE] Multiplayer: Transition to firing phase")
 
+    moves = 0
     current_player = 1
     while True:
         # Turn tracker and manager
@@ -388,6 +389,7 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
         try:
             row, col = parse_coordinate(guess)
             result, sunk_name = opponent_board.fire_at(row, col)
+            moves += 1
 
             if result == 'hit':
                 if sunk_name:
@@ -401,8 +403,8 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
        
             # Check if the opponent has lost all ships
             if opponent_board.all_ships_sunk():
-                send(f"\nPlayer {current_player} wins! All ships have been sunk.", current_player)
-                send(f"\nYou lost! All your ships have been sunk.", 3 - current_player)
+                send(f"\nPlayer {current_player} wins! All ships have been sunk. ({moves} moves)", current_player)
+                send(f"\nYou lost! All your ships have been sunk. ({moves} moves)", 3 - current_player)
                 gameState_ref[0] = 2 # Game over
                 logger.debug(f"[GAME STATE] Multiplayer: Player {current_player} wins - Game over")
                 break
@@ -413,9 +415,20 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
             send("  Invalid input, try again.", current_player)
 
     #new game?
-    #send("Would you like a rematch?")
-    #rematch1 = recv(1)
-    #def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref)
+    send("Would you like a rematch? (Y/N) (0/2 needed)",1)
+    rematch1 = recv(1)
+    if rematch1 != 'N':
+        send("Would you like a rematch? (Y/N) (1/2 needed)",2)
+        rematch2 = recv(2)
+        if rematch2 != 'N':
+            run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref)
+        else:
+            send("Returning to lobby",1)
+            send("Returning to lobby",2)
+    else:
+        send("Returning to lobby",1)
+        send("Returning to lobby",2)
+    
 
 
 
