@@ -45,6 +45,8 @@ now_sending.set() # The server starts first
 
 def receive_messages(rfile):
     """Continuously receive and display messages from the server"""
+    global gameState
+
     while True:
         line = rfile.readline()
         if not line: # Stops the thread once the server disconnects
@@ -132,16 +134,17 @@ def stateCheck(message,user_input,wfile):
     """Checks the state of the game and returns the appropriate message"""
     if gameState == 0: # Game is in the placement phase
         message = f"PLACE ship at location {user_input}"
-        wfile.write(message + '\n')
-        wfile.flush()
 
     elif gameState == 1: # Game is in the firing phase
         message = f"FIRE at location {user_input}"
-        wfile.write(message + '\n')
-        wfile.flush()
 
     elif gameState == 2: # Game is over
-        return # Do nothing, the game is over
+        message = f"GAMEOVER"
+    else:
+        return #Unknown game state: {gameState}
+    
+    wfile.write(message + '\n')
+    wfile.flush()
 
          
 
