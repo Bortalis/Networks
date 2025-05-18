@@ -5,41 +5,47 @@ Connects to a Battleship server which runs the single-player game.
 Simply pipes user input to the server, and prints all server responses.
 
 """
-#import threading #will allow client and sever listening to be done at the same time
-
 import socket
 import threading
-
-import sys
-
-def flush_input():
-    try:
-        import termios  # Unix
-        import tty
-        import select
-
-        while True:
-            dr, dw, de = select.select([sys.stdin], [], [], 0)
-            if dr:
-                sys.stdin.read(1)
-            else:
-                break
-    except ImportError:
-        # Windows
-        import msvcrt
-        while msvcrt.kbhit():
-            msvcrt.getch()
-
+import time
+import msvcrt
 
 HOST = '127.0.0.1'
 PORT = 5000
 #python3 Networks\Project\client.py for testing purposes
 
-
 server_disc = threading.Event() # Is true when the thead closes
 now_sending = threading.Event() # Is true while the sever is sending lines
 now_sending.set() # The server starts first
 
+
+def flush_input(): #removes up any buffered up input
+    while msvcrt.kbhit():
+        msvcrt.getch()
+
+def quick_time_event(): #30 second timeout for inputs
+    timeout = 30
+    print(end='', flush=True)
+    start_time = time.time()
+    input_str = ''
+    while True:
+        if msvcrt.kbhit():
+            char = msvcrt.getwch()
+            if char == '\r':  # Enter key
+                break
+            elif char == '\b':  # Backspace
+                if input_str:
+                    input_str = input_str[:-1]
+                    print('\b \b', end='', flush=True)
+            else:
+                input_str += char
+                print(char, end='', flush=True)
+        if time.time() - start_time > timeout:
+            print("\nTimed out!")
+            return "quit"
+        time.sleep(0.05) # we want to check every so often, but not so often that it strains performance
+    print(flush=True) # used as a new line
+    return input_str
 
 def receive_messages(rfile):
     """Continuously receive and display messages from the server"""
@@ -50,20 +56,15 @@ def receive_messages(rfile):
             server_disc.set() # Alerts the main thread that the server disconnected
             break
         
-        #if line == "Your turn!":
-            #cls() maybe for later
-
-        # Process and display the message
         line = line.strip()
         if line == "GRID":
-            # Begin reading board lines
             while True:
                 board_line = rfile.readline()
                 if not board_line or board_line.strip() == "":
                     break
                 print(board_line.strip())
+
         else:
-            # Normal message
             print(line)
             if line == '>>': # True when ">> " is the line TODO: Not a very secure method of checking
                 now_sending.clear() # Time for User input
@@ -77,7 +78,6 @@ def main():
         rfile = s.makefile('r')
         wfile = s.makefile('w')
 
-
     print("\n[INFO] Successfully connected to Server")
     # Start a thread for receiving messages
     sv_side = threading.Thread(target=receive_messages,args=(rfile,),daemon=True)
@@ -85,19 +85,16 @@ def main():
 
     # Main thread handles sending user input
     try:
-
         while not server_disc.is_set():  # There is a connection to the sever
             if not now_sending.is_set(): # The sever is done sending messages
-                flush_input() #eats up any buffed input
-                user_input = input()
+                flush_input() 
+                user_input = quick_time_event()
                 wfile.write(user_input + '\n')
                 wfile.flush()
                 now_sending.set() # Server's turn to send a messages
-
     except KeyboardInterrupt:
         now_sending.set() # Unblocks the wait
         print("\n[INFO] Client exiting.")
     
-
 if __name__ == "__main__":
     main()
