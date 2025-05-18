@@ -349,17 +349,17 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2):
         send("Please place your ships manually on the board.",player)
         for ship_name, ship_size in ships:
             while True:
-                bd.print_display_grid(show_hidden_board=True)
-                send(f"Placing your {ship_name} (size {ship_size}).",player)
+                send_board(bd, player, True)
+                send(f"Place your {ship_name} (size {ship_size}).",player)
                 send("  Enter starting coordinate (e.g. A1): ",player)
                 coord_str = recv(player)
-                send("  Orientation? Enter 'H' (horizontal) or 'V' (vertical): ")
+                send("Orientation? Enter 'H' (horizontal) or 'V' (vertical):",player)
                 orientation_str = recv(player).upper()
 
                 try:
                     row, col = parse_coordinate(coord_str)
                 except ValueError as e:
-                    send(f"  [!] Invalid coordinate: {e}")
+                    send(f"[!] Invalid coordinate: {e}")
                     continue
 
                 # Convert orientation_str to 0 (horizontal) or 1 (vertical)
@@ -368,7 +368,7 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2):
                 elif orientation_str == 'V':
                     orientation = 1
                 else:
-                    send("  [!] Invalid orientation. Please enter 'H' or 'V'.",player)
+                    send("[!] Invalid orientation. Please enter 'H' or 'V'.",player)
                     continue
 
                 # Check if we can place the ship

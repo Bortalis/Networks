@@ -66,8 +66,8 @@ def receive_messages(rfile):
 
         else:
             print(line)
-            if line == '>>': # True when ">> " is the line TODO: Not a very secure method of checking
-                now_sending.clear() # Time for User input
+            if line == '>>': #input request flag
+                now_sending.clear()
                 now_sending.wait(timeout=None) # Wait until the user has sent ther input
 
 
