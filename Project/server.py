@@ -1,7 +1,6 @@
 """
 server.py
 Game logic is handled entirely on the server using battleship.py.
-Client sends FIRE commands, and receives game feedback.
 """
 
 import time
@@ -74,7 +73,6 @@ def main():
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.bind((HOST, PORT))
             s.listen()
-            queue = [] #this is the list of players idk
             while True:
                 conn, addr = s.accept()
                 conn2, addr2 = s.accept()
@@ -82,7 +80,6 @@ def main():
                 client_thread.start()
                 threads.append(client_thread)
                 break
-
 
             for thread in threads: #waits for all players to finish their game before closing
                 thread.join()
