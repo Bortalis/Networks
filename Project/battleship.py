@@ -61,7 +61,6 @@ class Board:
                     })
                     placed = True
 
-
     def place_ships_manually(self, ships=SHIPS):
         """
         Prompt the user for each ship's starting coordinate and orientation (H or V).
@@ -100,7 +99,6 @@ class Board:
                     break
                 else:
                     print(f"  [!] Cannot place {ship_name} at {coord_str} (orientation={orientation_str}). Try again.")
-
 
     def can_place_ship(self, row, col, ship_size, orientation):
         """
@@ -219,7 +217,6 @@ class Board:
             row_str = " ".join(grid_to_print[r][c] for c in range(self.size))
             print(f"{row_label:2} {row_str}")
 
-
 def parse_coordinate(coord_str):
     """
     Convert something like 'B5' into zero-based (row, col).
@@ -279,7 +276,6 @@ def run_single_player_game_online(rfile, wfile):
     while True:
         send_board(board)
         send("Enter coordinate to fire at (e.g. B5):")
-        send(">> ")
         guess = recv()
         if guess.lower() == 'quit':
             send("Thanks for playing. Goodbye.")
@@ -339,22 +335,77 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2):
             wfile2.flush()
 
     def recv(player):
+        send(">>",player)
         if player == 1:
             return rfile1.readline().strip()
         else:
             return rfile2.readline().strip()
     
+    def place_ships_remotely(bd, player, ships=SHIPS):
+        """
+        Prompt the user for each ship's starting coordinate and orientation (H or V).
+        Validates the placement; if invalid, re-prompts.
+        """
+        send("Please place your ships manually on the board.",player)
+        for ship_name, ship_size in ships:
+            while True:
+                bd.print_display_grid(show_hidden_board=True)
+                send(f"Placing your {ship_name} (size {ship_size}).",player)
+                send("  Enter starting coordinate (e.g. A1): ",player)
+                coord_str = recv(player)
+                send("  Orientation? Enter 'H' (horizontal) or 'V' (vertical): ")
+                orientation_str = recv(player).upper()
+
+                try:
+                    row, col = parse_coordinate(coord_str)
+                except ValueError as e:
+                    send(f"  [!] Invalid coordinate: {e}")
+                    continue
+
+                # Convert orientation_str to 0 (horizontal) or 1 (vertical)
+                if orientation_str == 'H':
+                    orientation = 0
+                elif orientation_str == 'V':
+                    orientation = 1
+                else:
+                    send("  [!] Invalid orientation. Please enter 'H' or 'V'.",player)
+                    continue
+
+                # Check if we can place the ship
+                if bd.can_place_ship(row, col, ship_size, orientation):
+                    occupied_positions = bd.do_place_ship(row, col, ship_size, orientation)
+                    bd.placed_ships.append({
+                        'name': ship_name,
+                        'positions': occupied_positions
+                    })
+                    break
+                else:
+                    send(f"  [!] Cannot place {ship_name} at {coord_str} (orientation={orientation_str}). Try again.",player)
+
     player1_board = Board(BOARD_SIZE)
     player2_board = Board(BOARD_SIZE)
 
     send("Welcome to Online Multi-Player Battleship! Try to sink all the ships. Type 'quit' to exit.",1)
     send("Welcome to Online Multi-Player Battleship! Try to sink all the ships. Type 'quit' to exit.",2)
 
-    if True: #REMOVE LATER!!!!!!!!!!!!!! TODO:
+    #Game setup
+    send("Other player is now placing their ships",2)   
+    send("Place ships manually (M) or randomly (R)? [M/R]: ",1)
+    choice = recv(1).upper()
+    if choice != 'R':
+        place_ships_remotely(player1_board,1,SHIPS)
+    else:
         player1_board.place_ships_randomly(SHIPS)
+    send("Other player is now placing their ships",1)    
+    send("Place ships manually (M) or randomly (R)? [M/R]: ",2)
+    choice = recv(2).upper()
+    if choice != 'R':
+        place_ships_remotely(player2_board,2,SHIPS)
+    else:
         player2_board.place_ships_randomly(SHIPS)
+        
 
-    # Player 1 starts off
+    # Game start
     current_player = 1
     while True:
         # Turn tracker and manager
@@ -373,12 +424,8 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2):
         send_board(board_in_use, current_player, True)
 
 
-
         # Get the shot from the current player
         send("Enter a coordinate to fire at (or 'quit' to forfeit): ", current_player)
-        send(">>", current_player)
-
-
         guess = recv(current_player)
 
 

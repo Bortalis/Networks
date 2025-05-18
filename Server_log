@@ -1,5 +1,5 @@
 DEBUG:__main__:[INFO] Server listening on 127.0.0.1:5000
-DEBUG:__main__:[INFO] Client connected from ('127.0.0.1', 60762)
-DEBUG:__main__:[INFO] Client connected from ('127.0.0.1', 60764)
+DEBUG:__main__:[INFO] Client connected from ('127.0.0.1', 64383)
+DEBUG:__main__:[INFO] Client connected from ('127.0.0.1', 64385)
 DEBUG:__main__:All threads have joined
 DEBUG:__main__:Server turning off
