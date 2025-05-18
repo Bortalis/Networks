@@ -53,6 +53,9 @@ def multi_client(player1, player2):
 
     game_running.clear()
 
+def handle_client(conn, add):
+    pass
+
 
 queue = [] #players waiting for an opponent
 players = [] #players playing
@@ -68,8 +71,6 @@ def main():
             while True:
                 conn, addr = s.accept()
                 logger.debug(f"[INFO] Client connected from {addr}")
-
-                
                 queue.append((conn,addr)) #keep their addr for id for T3.3?
 
                 if len(queue) >= 2 and not game_running.is_set():
