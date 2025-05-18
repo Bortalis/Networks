@@ -121,45 +121,6 @@ def monitor_and_send_gamestate(wfile, gamestate_ref, interval=2):
 
         time.sleep(interval)
 
-#TASK 1.4___________________________________________________________Server Side Function 
-def clientListener(rfile, wfile, gamestate_ref):
-    """Listens to messages from the client, and log them, process response."""
-    while True:
-        # Read from the client
-        line = rfile.readline().strip()
-        if not line:
-            print("[ERROR] Failed to recieve a command.")
-            break
-
-        logger.debug(f"[INFO] Received message from client: {line}")
-
-        
-        if line.startswith("PLACE"):
-            location = line.split()[-1]  # Extract the location (e.g., "A1")
-            logger.debug(f"[INFO] Placing ship at {location}")
-                
-
-        elif line.startswith("FIRE"):
-                target = line[8:].strip()  # Extract the target (e.g., "A1")
-                logger.debug(f"[INFO] Player fired at {target}")
-
-                # TODO: Add your firing logic here
-                # Example: Check if target is a hit or miss
-                result = "HIT" if target == "A1" else "MISS"  # Replace with actual logic
-                response = f"RESULT {result}"
-
-        elif line.startswith("GAMEOVER"):
-            logger.debug("[INFO] Game Over")
-            response = "GAMEOVER"
-
-        else:
-            logger.debug(f"State No Command Unknown: Ending Game")
-            response = "ERROR: Unknown command"
-
-        # Send the response back to the client
-        wfile.write(response + '\n')
-        wfile.flush()
-        logger.debug(f"[INFO] Sent to client: {response}")
 
 
 if __name__ == "__main__":

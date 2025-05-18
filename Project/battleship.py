@@ -409,7 +409,7 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
             send(f"Player {current_player} forfeits! Player {3 - current_player} wins!", current_player)
             send(f"Player {current_player} forfeits! Player {3 - current_player} wins!", 3 - current_player)
             gameState_ref[0] = 2 # Game over
-            logger.debug(f"[GAME STATE] Multiplayer: Player {current_player} quit — Game over")
+            logger.debug(f"[GAME STATE] Multiplayer: Player {current_player} quit - Game over")
             break
 
         try:
@@ -431,7 +431,7 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
                 send(f"\nPlayer {current_player} wins! All ships have been sunk.", current_player)
                 send(f"\nYou lost! All your ships have been sunk.", 3 - current_player)
                 gameState_ref[0] = 2 # Game over
-                logger.debug(f"[GAME STATE] Multiplayer: Player {current_player} wins — Game over")
+                logger.debug(f"[GAME STATE] Multiplayer: Player {current_player} wins - Game over")
                 break
 
             # Switch turns between Player 1 and Player 2

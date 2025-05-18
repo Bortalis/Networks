@@ -1,17 +1,60 @@
-#This is for the messages between the server and client
-#SET UP FOR TASK 1.4
+#TASK 1.4___________________________________________________________Client Side Function
+def stateCheck(message,user_input,wfile):
+    """Checks the state of the game and returns the appropriate message"""
+    if gameState == 0: # Game is in the placement phase
+        message = f"PLACE ship at location {user_input}"
 
-#What does the client recieve? -------------
-RESULT = "RESULT HIT/MISS"
-BOARD = "send updated board"
+    elif gameState == 1: # Game is in the firing phase
+        message = f"FIRE at location {user_input}"
 
-#client sends
-FIRE = "FIRE B5"
-PLACE = "PLACE A1 H BATTLESHIP"
+    elif gameState == 2: # Game is over
+        message = f"GAMEOVER"
+    else:
+        return #Unknown game state: {gameState}
+    
+    wfile.write(message + '\n')
+    wfile.flush()
 
 
-#SERVER SIDE #sends
-RESULT
+#TASK 1.4___________________________________________________________Server Side Function 
+def clientListener(rfile, wfile, gamestate_ref):
+    """Listens to messages from the client, and log them, process response."""
+    while True:
+        # Read from the client
+        line = rfile.readline().strip()
+        if not line:
+            print("[ERROR] Failed to recieve a command.")
+            break
+
+        logger.debug(f"[INFO] Received message from client: {line}")
+
+        
+        if line.startswith("PLACE"):
+            location = line.split()[-1]  # Extract the location (e.g., "A1")
+            logger.debug(f"[INFO] Placing ship at {location}")
+                
+
+        elif line.startswith("FIRE"):
+                target = line[8:].strip()  # Extract the target (e.g., "A1")
+                logger.debug(f"[INFO] Player fired at {target}")
+
+                # TODO: Add your firing logic here
+                # Example: Check if target is a hit or miss
+                result = "HIT" if target == "A1" else "MISS"  # Replace with actual logic
+                response = f"RESULT {result}"
+
+        elif line.startswith("GAMEOVER"):
+            logger.debug("[INFO] Game Over")
+            response = "GAMEOVER"
+
+        else:
+            logger.debug(f"State No Command Unknown: Ending Game")
+            response = "ERROR: Unknown command"
+
+        # Send the response back to the client
+        wfile.write(response + '\n')
+        wfile.flush()
+        logger.debug(f"[INFO] Sent to client: {response}")
 
 
 

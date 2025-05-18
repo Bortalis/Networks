@@ -113,10 +113,6 @@ def main():
             if not now_sending.is_set(): # The sever is done sending messages
                 flush_input() #eats up any buffed input
                 user_input = input()
-                message = None
-
-                #Format the message depending on the state command
-                stateCheck(message,user_input,wfile)
 
                 wfile.write(user_input + '\n')
                 wfile.flush()
@@ -127,24 +123,6 @@ def main():
     except KeyboardInterrupt:
         now_sending.set() # Unblocks the wait
         print("\n[INFO] Client exiting.")
-
-
-#TASK 1.4___________________________________________________________Client Side Function
-def stateCheck(message,user_input,wfile):
-    """Checks the state of the game and returns the appropriate message"""
-    if gameState == 0: # Game is in the placement phase
-        message = f"PLACE ship at location {user_input}"
-
-    elif gameState == 1: # Game is in the firing phase
-        message = f"FIRE at location {user_input}"
-
-    elif gameState == 2: # Game is over
-        message = f"GAMEOVER"
-    else:
-        return #Unknown game state: {gameState}
-    
-    wfile.write(message + '\n')
-    wfile.flush()
 
          
 
