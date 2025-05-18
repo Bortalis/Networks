@@ -294,8 +294,12 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
                 send(f"Place your {ship_name} (size {ship_size}).",player)
                 send("  Enter starting coordinate (e.g. A1): ",player)
                 coord_str = recv(player)
+                if coord_str == "QUIT":
+                    return True
                 send("Orientation? Enter 'H' (horizontal) or 'V' (vertical):",player)
                 orientation_str = recv(player)
+                if orientation_str == "QUIT":
+                    return True
 
                 try:
                     row, col = parse_coordinate(coord_str)
@@ -322,6 +326,7 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
                     break
                 else:
                     send(f"[!] Cannot place {ship_name} at {coord_str} (orientation={orientation_str}). Try again.",player)
+        return False
 
     send("Welcome to Online Multi-Player Battleship! Try to sink all the ships. Type 'quit' to exit.",1)
     send("Welcome to Online Multi-Player Battleship! Try to sink all the ships. Type 'quit' to exit.",2)
@@ -332,32 +337,39 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
     player1_board = Board(BOARD_SIZE)
     player2_board = Board(BOARD_SIZE)
 
+    quit = False
     # Board setup
     send("Other player is now placing their ships",2)   
     send("Place ships manually (M) or randomly (R)? [M/R]: ",1)
     choice = recv(1)
-    if choice != 'R':
-        place_ships_remotely(player1_board,1,SHIPS)
+    if choice == "QUIT":
+        quit = True
+    elif choice != 'R':
+        quit = place_ships_remotely(player1_board,1,SHIPS)
     else:
         player1_board.place_ships_randomly(SHIPS)
-    send("Other player is now placing their ships",1)    
-    send("Place ships manually (M) or randomly (R)? [M/R]: ",2)
-    choice = recv(2)
-    if choice != 'R':
-        place_ships_remotely(player2_board,2,SHIPS)
-    else:
-        player2_board.place_ships_randomly(SHIPS)
+    if not quit:
+        send("Other player is now placing their ships",1)    
+        send("Place ships manually (M) or randomly (R)? [M/R]: ",2)
+        choice = recv(2)
+        if choice == "QUIT":
+            quit = True
+        elif choice != 'R':
+            quit = place_ships_remotely(player2_board,2,SHIPS)
+        else:
+            player2_board.place_ships_randomly(SHIPS)
          
     # Game start
-    send("--GAME START!--",1)   
-    send("--GAME START!--",2)
+    if not quit:
+        send("--GAME START!--",1)   
+        send("--GAME START!--",2)
 
-    gameState_ref[0] = 1 # Game state is now in progress 
-    logger.debug("[GAME STATE] Multiplayer: Transition to firing phase")
+        gameState_ref[0] = 1 # Game state is now in progress 
+        logger.debug("[GAME STATE] Multiplayer: Transition to firing phase")
 
     moves = 0
     current_player = 1
-    while True:
+    while not quit:
         # Turn tracker and manager
         send(f"Your turn!",current_player)
         if current_player == 1:
@@ -380,10 +392,7 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
 
 
         if guess.lower() == 'quit':
-            send(f"Player {current_player} forfeits! Player {3 - current_player} wins!", current_player)
-            send(f"Player {current_player} forfeits! Player {3 - current_player} wins!", 3 - current_player)
-            gameState_ref[0] = 2 # Game over
-            logger.debug(f"[GAME STATE] Multiplayer: Player {current_player} quit - Game over")
+            quit = True
             break
 
         try:
@@ -415,13 +424,23 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
             send("  Invalid input, try again.", current_player)
 
     #new game?
-    send("Would you like a rematch? (Y/N) (0/2 needed)",1)
-    rematch1 = recv(1)
-    if rematch1 != 'N':
-        send("Would you like a rematch? (Y/N) (1/2 needed)",2)
-        rematch2 = recv(2)
-        if rematch2 != 'N':
-            run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref)
+    if quit:
+        send(f"Player {current_player} forfeits! Player {3 - current_player} wins!", current_player)
+        send(f"Player {current_player} forfeits! Player {3 - current_player} wins!", 3 - current_player)
+        gameState_ref[0] = 2 # Game over
+        logger.debug(f"[GAME STATE] Multiplayer: Player {current_player} quit - Game over")
+
+    if not quit:
+        send("Would you like a rematch? (Y/N) (0/2 needed)",1)
+        rematch1 = recv(1)
+        if rematch1 != 'N':
+            send("Would you like a rematch? (Y/N) (1/2 needed)",2)
+            rematch2 = recv(2)
+            if rematch2 != 'N':
+                run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref)
+            else:
+                send("Returning to lobby",1)
+                send("Returning to lobby",2)
         else:
             send("Returning to lobby",1)
             send("Returning to lobby",2)
