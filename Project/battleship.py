@@ -350,7 +350,6 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
             wfile2.write('\n')
             wfile2.flush()
 
-
     def recv(player):
         if player == 1:
             return rfile1.readline().strip()
@@ -403,7 +402,10 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
         # Get the shot from the current player
         send("Enter a coordinate to fire at (or 'quit' to forfeit): ", current_player)
         send(">>", current_player)
+
+
         guess = recv(current_player)
+
 
         if guess.lower() == 'quit':
             send(f"Player {current_player} forfeits! Player {3 - current_player} wins!", current_player)
