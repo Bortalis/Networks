@@ -1,14 +1,12 @@
 """
 server.py
 Game logic is handled entirely on the server using battleship.py.
-Client sends FIRE commands, and receives game feedback.
 """
 
 import time
 import socket
 import threading
 import logging
-from battleship import run_single_player_game_online
 from battleship import run_multi_player_game_online
 
 gamestate_ref = [0] 
@@ -29,40 +27,19 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-
-def single_client(conn, addr):
-    logger.debug(f"[INFO] Client connected from {addr}")
-    with conn:
-        rfile = conn.makefile('r')
-        wfile = conn.makefile('w')
-
-        # Start a thread to send game state updates to the client
-        gamestate_thread = threading.Thread(target=monitor_and_send_gamestate, args=(wfile, gamestate_ref), daemon=True)
-        gamestate_thread.start()    
-
-        run_single_player_game_online(rfile, wfile, gamestate_ref)
-    logger.debug(f"[INFO] Client from {addr} disconnected.")
-
-def multi_client(conn1, addr1, conn2, addr2):
-    logger.debug(f"[INFO] Client connected from {addr1}")
-    logger.debug(f"[INFO] Client connected from {addr2}")
+def multi_client(conn1, conn2):
     rfile1 = conn1.makefile('r')
     wfile1 = conn1.makefile('w')
     rfile2 = conn2.makefile('r')
     wfile2 = conn2.makefile('w')
 
-    # Start a thread to send game state updates to the client
+    # Start threads to send game state updates to the clients
     gamestate_thread_P1 = threading.Thread(target=monitor_and_send_gamestate, args=(wfile1, gamestate_ref), daemon=True)
-    gamestate_thread_P1.start()
-    # Start a thread to send game state updates to the client
     gamestate_thread_P2 = threading.Thread(target=monitor_and_send_gamestate, args=(wfile2, gamestate_ref), daemon=True)
+    gamestate_thread_P1.start()
     gamestate_thread_P2.start()
 
     run_multi_player_game_online(rfile1,wfile1,rfile2,wfile2, gamestate_ref)
-
-    conn1.close()
-    conn2.close()
-
 
 
 def main():
@@ -72,29 +49,47 @@ def main():
         logger.debug(f"[INFO] Server listening on {HOST}:{PORT}")
 
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            queue = [] #players waiting for an opponent
+            players = [] #players playing
             s.bind((HOST, PORT))
             s.listen()
-            queue = [] #this is the list of players idk
             while True:
                 conn, addr = s.accept()
-                conn2, addr2 = s.accept()
-                client_thread = threading.Thread(target=multi_client, args=(conn, addr, conn2, addr2), daemon=True)
-                client_thread.start()
-                threads.append(client_thread)
-                break
+                logger.debug(f"[INFO] Client connected from {addr}")
+                queue.append((conn,addr)) #we keep their addr for id for T3.3
 
+                if len(queue) >= 2:
+                    client_thread = threading.Thread(target=multi_client, args=(queue[0][0], queue[1][0]), daemon=True)
+                    players.append(queue[0])
+                    players.append(queue[0])
 
-            for thread in threads: #waits for all players to finish their game before closing
-                thread.join()
-                logger.debug("All threads have joined")
+                    client_thread.start()
+                    threads.append(client_thread)
 
     except Exception as e:
         logger.exception("I don't even know what went wrong in this case",stack_info = True)
 
-    logger.debug("Server turning off")
+    logger.debug("[INFO] Server turning off")
+
+
+
+
+#Server should not end for now                    
+#
+#                if len(players) >= 2:
+#                    break
+#
+#            for thread in threads: #waits for all players to finish their game before closing
+#                thread.join()
+#            logger.debug("[INFO] All threads have joined")
+#            #remember to close all conn 
+#
+#
 
 
 #TASK 1.4___________________________________________________________Server Side Function 
+
+
 def monitor_and_send_gamestate(wfile, gamestate_ref, interval=2):
     """
     Periodically sends the game state to the client every 'interval' seconds.
@@ -116,8 +111,6 @@ def monitor_and_send_gamestate(wfile, gamestate_ref, interval=2):
             break
 
         time.sleep(interval)
-
-
 
 if __name__ == "__main__":
     main()

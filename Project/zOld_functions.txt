@@ -1,0 +1,215 @@
+
+This file contains the local game functions for Battleship
+These should only be looked at for reference and testing but NOT for use
+
+
+if __name__ == "__main__":
+    # Optional: run this file as a script to test single-player mode
+    print("--Online functionallity will be disabled while Running locally--")
+    #start_game_locally() Not now
+
+def start_game_locally():
+    while True:
+        print("Welcome! Please indicate what you want")
+        print("1: singleplayer")
+        print("2: multiplayer")
+        print("3: quit")
+        print(">> ")
+        choice = input()
+        if choice == "1":
+            run_single_player_game_locally()
+            break
+        elif choice == "2":
+            run_multi_player_game_locally()
+            break
+        elif choice == "3":
+            print("Goodbye!")
+            break
+        else: 
+            print("That wasn't a valid input, try again.") 
+
+def run_single_player_game_locally():
+    """
+    A test harness for local single-player mode, demonstrating two approaches:
+     1) place_ships_manually()
+     2) place_ships_randomly()
+
+    Then the player tries to sink them by firing coordinates.
+    """
+    board = Board(BOARD_SIZE)
+
+    # Ask user how they'd like to place ships
+    choice = input("Place ships manually (M) or randomly (R)? [M/R]: ").strip().upper()
+    if choice == 'M':
+        board.place_ships_manually(SHIPS)
+    else:
+        board.place_ships_randomly(SHIPS)
+
+    print("\nNow try to sink all the ships!")
+    moves = 0
+    while True:
+        board.print_display_grid()
+        guess = input("\nEnter coordinate to fire at (or 'quit'): ").strip()
+        if guess.lower() == 'quit':
+            print("Thanks for playing. Exiting...")
+            return
+
+        try:
+            row, col = parse_coordinate(guess)
+            result, sunk_name = board.fire_at(row, col)
+            moves += 1
+
+            if result == 'hit':
+                if sunk_name:
+                    print(f"  >> HIT! You sank the {sunk_name}!")
+                else:
+                    print("  >> HIT!")
+                if board.all_ships_sunk():
+                    board.print_display_grid()
+                    print(f"\nCongratulations! You sank all ships in {moves} moves.")
+                    break
+            elif result == 'miss':
+                print("  >> MISS!")
+            elif result == 'already_shot':
+                print("  >> You've already fired at that location. Try again.")
+
+        except ValueError as e:
+            print("  >> Invalid input:", e)
+
+def run_multi_player_game_locally():
+    testing = True
+
+    player1_board = Board(BOARD_SIZE)
+    player2_board = Board(BOARD_SIZE)
+
+    if testing == True: #REMOVE LATER!!!!!!!!!!!!!!
+        player1_board.place_ships_randomly(SHIPS)
+        player2_board.place_ships_randomly(SHIPS)
+
+    else:
+        print("Player 1, place your ships.")
+        player1_board.place_ships_manually(SHIPS)
+
+        print("\nPlayer 2, place your ships.")
+        player2_board.place_ships_manually(SHIPS)
+
+    # Player turn tracker
+    current_player = 1
+    while True:
+        # Who's turn is it? swap boards?
+        if current_player == 1:
+            print("\nPlayer 1's turn!")
+            board_in_use = player1_board
+            opponent_board = player2_board
+        else:
+            print("\nPlayer 2's turn!")
+            board_in_use = player2_board
+            opponent_board = player1_board
+
+        # Display the current player's board (without showing ships)
+        print(f"\nPlayer {current_player} board:")
+        board_in_use.print_display_grid(True)
+
+        # Get the shot from the current player
+        guess = input("Enter a coordinate to fire at (or 'quit' to forfeit): ").strip()
+
+        if guess.lower() == 'quit':
+            print(f"Player {current_player} forfeits! Player {3 - current_player} wins!")
+            break
+        #3 - current_player is used to switch between 1 and 2
+
+        try:
+            # Parse the coordinate entered
+            row, col = parse_coordinate(guess)
+
+            # check if it's a hit or miss
+            result, sunk_name = opponent_board.fire_at(row, col)
+
+            if result == 'hit':
+                if sunk_name:
+                    print(f"  >> HIT! You sank the {sunk_name}!")
+                else:
+                    print("  >> HIT!")
+            elif result == 'miss':
+                print("  >> MISS!")
+            elif result == 'already_shot':
+                print("  >> You've already shot at that spot. Try again.")
+
+            print("\nOpponent's board after your shot:")
+            opponent_board.print_display_grid()
+            
+            # Check if the opponent has lost all ships
+            if opponent_board.all_ships_sunk():
+                print(f"\nPlayer {current_player} wins! All ships have been sunk.")
+                break
+
+            # Switch turns between Player 1 and Player 2
+            if current_player == 1:
+                current_player = 2
+            else:   
+                current_player = 1
+
+        except ValueError as e:
+            print("  >> Invalid input:", e)
+
+def run_single_player_game_online(rfile, wfile, gameState_ref):
+
+    gameState_ref[0] = 0 # 0 = waiting for player to place ships
+    logger.debug("[GAME STATE] Single-player: Placement phase")
+
+    def send(msg):
+        wfile.write(msg + '\n')
+        wfile.flush()
+
+    def send_board(board,show_hidden=False):
+        grid_to_send = board.hidden_grid if show_hidden else board.display_grid
+        wfile.write("GRID\n")
+        wfile.write("_|" + " ".join(str(i + 1).rjust(2) for i in range(board.size)) + '\n')
+        for r in range(board.size):
+            row_label = chr(ord('A') + r)
+            row_str = "  ".join(grid_to_send[r][c] for c in range(board.size))
+            wfile.write(f"{row_label:2} {row_str}\n")
+        wfile.write('\n')
+        wfile.flush()
+
+    def recv():
+        return rfile.readline().strip()
+
+    board = Board(BOARD_SIZE)
+    board.place_ships_manually(SHIPS)
+    gameState_ref[0] = 1 # Game is in progress, now in firing phase
+    logger.debug("[GAME STATE] Singleplayer: Transition to firing phase")
+
+    send("Welcome to Online Single-Player Battleship! Try to sink all the ships. Type 'quit' to exit.")
+
+    moves = 0
+    while True:
+        send_board(board)
+        send("Enter coordinate to fire at (e.g. B5):")
+        guess = recv()
+        if guess.lower() == 'quit':
+            send("Thanks for playing. Goodbye.")
+            return
+
+        try:
+            row, col = parse_coordinate(guess)
+            result, sunk_name = board.fire_at(row, col)
+            moves += 1
+
+            if result == 'hit':
+                if sunk_name:
+                    send(f"HIT! You sank the {sunk_name}!")
+                else:
+                    send("HIT!")
+                if board.all_ships_sunk():
+                    send_board(board)
+                    send(f"Congratulations! You sank all ships in {moves} moves.")
+                    logger.debug("[GAME STATE] Single-player: All ships sunk — Game over")
+                    gameState_ref[0] = 2 # Game over
+                    return
+            elif result == 'miss':
+                send("MISS!")
+            elif result == 'already_shot':
+                send("You've already fired at that location.")
+        except ValueError as e:
+            send(f"Invalid input: {e}")
