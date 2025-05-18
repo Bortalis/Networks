@@ -1,6 +1,0 @@
-DEBUG:__main__:[INFO] Server listening on 127.0.0.1:5000
-DEBUG:__main__:[INFO] Client connected from ('127.0.0.1', 59470)
-DEBUG:__main__:[INFO] Client from ('127.0.0.1', 59470) disconnected.
-DEBUG:__main__:All threads have joined
-DEBUG:__main__:<_MainThread(MainThread, started 8512)>
-DEBUG:__main__:Server turning off

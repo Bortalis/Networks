@@ -27,11 +27,17 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-def multi_client(conn1, conn2):
+game_running = threading.Event()
+
+def multi_client(player1, player2):
+
+    logger.debug("whats0")
+    conn1 = player1[0]
+    conn2 = player2[0]
     rfile1 = conn1.makefile('r')
     wfile1 = conn1.makefile('w')
-    rfile2 = conn2.makefile('r')
-    wfile2 = conn2.makefile('w')
+
+    logger.debug("whats1")
 
     # Start threads to send game state updates to the clients
     gamestate_thread_P1 = threading.Thread(target=monitor_and_send_gamestate, args=(wfile1, gamestate_ref), daemon=True)
@@ -41,21 +47,31 @@ def multi_client(conn1, conn2):
 
     run_multi_player_game_online(rfile1,wfile1,rfile2,wfile2, gamestate_ref)
 
+    #put players back in the queue
+    queue.append(player1)
+    queue.append(player2)
+
+    game_running.clear()
+
+def handle_client(conn, add):
+    pass
+
+
+queue = [] #players waiting for an opponent
+players = [] #players playing
 
 def main():
     try:
-        threads = [] # keeps track of threads
-
         logger.debug(f"[INFO] Server listening on {HOST}:{PORT}")
 
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            queue = [] #players waiting for an opponent
-            players = [] #players playing
+            
             s.bind((HOST, PORT))
             s.listen()
             while True:
                 conn, addr = s.accept()
                 logger.debug(f"[INFO] Client connected from {addr}")
+
 
                 # If a game is in progress, immediately notify the client and do not add to queue
                 if len(players) == 2:
@@ -86,8 +102,13 @@ def main():
                     players.append(queue[0])
                     players.append(queue[0]) #I DON'T KNOW IF THIS IS SUPPOSED TO BE QUEUE[1]??????
 
+
+                if len(queue) >= 2 and not game_running.is_set():
+                    client_thread = threading.Thread(target=multi_client, args=(queue[0], queue[1]), daemon=True)
+                    queue.pop(0)
+                    queue.pop(0)
+                    game_running.set()
                     client_thread.start()
-                    threads.append(client_thread)
 
                 # Remove that pair of clients from queue
                     queue = queue[2:]
@@ -101,21 +122,15 @@ def main():
 
 
 #Server should not end for now                    
-#
 #                if len(players) >= 2:
 #                    break
-#
 #            for thread in threads: #waits for all players to finish their game before closing
 #                thread.join()
 #            logger.debug("[INFO] All threads have joined")
 #            #remember to close all conn 
-#
-#
 
 
 #TASK 1.4___________________________________________________________Server Side Function 
-
-
 def monitor_and_send_gamestate(wfile, gamestate_ref, interval=2):
     """
     Periodically sends the game state to the client every 'interval' seconds.
