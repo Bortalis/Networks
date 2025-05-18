@@ -243,10 +243,17 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
         global connected2
 
         send(">>",player)
-        if player == 1:
-            mail =  rfile1.readline().strip().upper()
-        else:
-            mail =  rfile2.readline().strip().upper()
+        try:
+            if player == 1:
+                mail =  rfile1.readline().strip().upper()
+            else:
+                mail =  rfile2.readline().strip().upper()
+        except Exception:
+            if player == 1:
+                connected1 = False
+            else:
+                connected2 = False
+            return "QUIT"
 
         if not mail or mail == '':
             if player == 1:
@@ -398,8 +405,8 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
         except ValueError as e:
             send("  Invalid input, try again.", current_player)
 
-    #new game?
-    if quit:
+
+    if quit and connected1 and connected2:
         send(f"Player {current_player} forfeits! Player {3 - current_player} wins!", current_player)
         send(f"Player {current_player} forfeits! Player {3 - current_player} wins!", 3 - current_player)
         gameState_ref[0] = 2 # Game over
@@ -407,6 +414,10 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
         send("Returning to lobby",1)
         send("Returning to lobby",2)
         return connected1, connected2
+    elif not connected2:
+        send("Player 2 has lost connection, ending match",1)
+    elif not connected1:
+        send("Player 1 has lost connection, ending match",2)
     else:
         send("Would you like a rematch? (Y/N) (0/2 needed)",1)
         rematch1 = recv(1)
@@ -414,7 +425,7 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
             send("Would you like a rematch? (Y/N) (1/2 needed)",2)
             rematch2 = recv(2)
             if rematch2 != 'N':
-                run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref)
+                return run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref)
             else:
                 send("Returning to lobby",1)
                 send("Returning to lobby",2)

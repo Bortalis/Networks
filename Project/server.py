@@ -48,21 +48,31 @@ def multi_client(player1, player2):
     else:
         try:
             player1[3].flush()
+        except: pass
+        try:
             player1[2].close()
+        except: pass
+        try:
             player1[3].close()
-        except:
-            pass
-        player1[0].close
+        except: pass
+        try:
+            player1[0].close()
+        except: pass
     if con2:
         put_in_queue(player2)
     else:
         try:
             player2[3].flush()
+        except: pass
+        try:
             player2[2].close()
+        except: pass
+        try:
             player2[3].close()
-        except:
-            pass
-        player2[0].close
+        except: pass
+        try:
+            player2[0].close()
+        except: pass
         
 
 
