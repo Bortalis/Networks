@@ -373,8 +373,12 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
         player1_board.place_ships_manually(SHIPS)
         player2_board.place_ships_manually(SHIPS) 
 
+
     gameState_ref[0] = 1 # Game state is now in progress 
-    logger.debug("[GAME STATE] Multiplayer: Transition to firing phase")
+    if gameState_ref[0] == 1: #NOTE THIS CHECK IS FOR TESTING, EITHER REMOVE OR APPLY TO ALL GAME STATE CHECKS
+        logger.debug("[GAME STATE] Multiplayer: Transition to firing phase")
+    else:
+        logger.debug("[ERROR] Multiplayer: Game phase didn't update")
 
     # Player 1 starts off
     current_player = 1
