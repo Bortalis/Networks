@@ -151,3 +151,65 @@ def run_multi_player_game_locally():
 
         except ValueError as e:
             print("  >> Invalid input:", e)
+
+def run_single_player_game_online(rfile, wfile, gameState_ref):
+
+    gameState_ref[0] = 0 # 0 = waiting for player to place ships
+    logger.debug("[GAME STATE] Single-player: Placement phase")
+
+    def send(msg):
+        wfile.write(msg + '\n')
+        wfile.flush()
+
+    def send_board(board,show_hidden=False):
+        grid_to_send = board.hidden_grid if show_hidden else board.display_grid
+        wfile.write("GRID\n")
+        wfile.write("_|" + " ".join(str(i + 1).rjust(2) for i in range(board.size)) + '\n')
+        for r in range(board.size):
+            row_label = chr(ord('A') + r)
+            row_str = "  ".join(grid_to_send[r][c] for c in range(board.size))
+            wfile.write(f"{row_label:2} {row_str}\n")
+        wfile.write('\n')
+        wfile.flush()
+
+    def recv():
+        return rfile.readline().strip()
+
+    board = Board(BOARD_SIZE)
+    board.place_ships_manually(SHIPS)
+    gameState_ref[0] = 1 # Game is in progress, now in firing phase
+    logger.debug("[GAME STATE] Singleplayer: Transition to firing phase")
+
+    send("Welcome to Online Single-Player Battleship! Try to sink all the ships. Type 'quit' to exit.")
+
+    moves = 0
+    while True:
+        send_board(board)
+        send("Enter coordinate to fire at (e.g. B5):")
+        guess = recv()
+        if guess.lower() == 'quit':
+            send("Thanks for playing. Goodbye.")
+            return
+
+        try:
+            row, col = parse_coordinate(guess)
+            result, sunk_name = board.fire_at(row, col)
+            moves += 1
+
+            if result == 'hit':
+                if sunk_name:
+                    send(f"HIT! You sank the {sunk_name}!")
+                else:
+                    send("HIT!")
+                if board.all_ships_sunk():
+                    send_board(board)
+                    send(f"Congratulations! You sank all ships in {moves} moves.")
+                    logger.debug("[GAME STATE] Single-player: All ships sunk — Game over")
+                    gameState_ref[0] = 2 # Game over
+                    return
+            elif result == 'miss':
+                send("MISS!")
+            elif result == 'already_shot':
+                send("You've already fired at that location.")
+        except ValueError as e:
+            send(f"Invalid input: {e}")

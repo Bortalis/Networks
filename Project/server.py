@@ -43,18 +43,15 @@ def single_client(conn, addr):
     logger.debug(f"[INFO] Client from {addr} disconnected.")
 
 def multi_client(conn1, addr1, conn2, addr2):
-    logger.debug(f"[INFO] Client connected from {addr1}")
-    logger.debug(f"[INFO] Client connected from {addr2}")
     rfile1 = conn1.makefile('r')
     wfile1 = conn1.makefile('w')
     rfile2 = conn2.makefile('r')
     wfile2 = conn2.makefile('w')
 
-    # Start a thread to send game state updates to the client
+    # Start threads to send game state updates to the clients
     gamestate_thread_P1 = threading.Thread(target=monitor_and_send_gamestate, args=(wfile1, gamestate_ref), daemon=True)
-    gamestate_thread_P1.start()
-    # Start a thread to send game state updates to the client
     gamestate_thread_P2 = threading.Thread(target=monitor_and_send_gamestate, args=(wfile2, gamestate_ref), daemon=True)
+    gamestate_thread_P1.start()
     gamestate_thread_P2.start()
 
     run_multi_player_game_online(rfile1,wfile1,rfile2,wfile2, gamestate_ref)
@@ -71,27 +68,32 @@ def main():
         logger.debug(f"[INFO] Server listening on {HOST}:{PORT}")
 
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            queue = [] #players waiting for an opponent
+            players = [] #players playing
             s.bind((HOST, PORT))
             s.listen()
             while True:
-                conn, addr = s.accept()
+                conn1, addr1 = s.accept()
+                logger.debug(f"[INFO] Client connected from {addr1}")
                 conn2, addr2 = s.accept()
-                client_thread = threading.Thread(target=multi_client, args=(conn, addr, conn2, addr2), daemon=True)
+                logger.debug(f"[INFO] Client connected from {addr2}")
+                client_thread = threading.Thread(target=multi_client, args=(conn1, addr1, conn2, addr2), daemon=True)
                 client_thread.start()
                 threads.append(client_thread)
                 break
-
             for thread in threads: #waits for all players to finish their game before closing
                 thread.join()
-                logger.debug("All threads have joined")
+            logger.debug("[INFO] All threads have joined")
 
     except Exception as e:
         logger.exception("I don't even know what went wrong in this case",stack_info = True)
 
-    logger.debug("Server turning off")
+    logger.debug("[INFO] Server turning off")
 
 
 #TASK 1.4___________________________________________________________Server Side Function 
+
+
 def monitor_and_send_gamestate(wfile, gamestate_ref, interval=2):
     """
     Periodically sends the game state to the client every 'interval' seconds.

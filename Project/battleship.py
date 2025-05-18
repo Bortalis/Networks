@@ -1,6 +1,7 @@
 
 import random
 import logging #requires this to send messages to the server log, as the game is run on server side
+
 logger = logging.getLogger(__name__)
 
 
@@ -242,74 +243,6 @@ def parse_coordinate(coord_str):
         col = 0
     return (row, col)
 
-
-
-def run_single_player_game_online(rfile, wfile, gameState_ref):
-    """
-    Expects:
-      - rfile: file-like object to .readline() from client
-      - wfile: file-like object to .write() back to client
-    """
-    gameState_ref[0] = 0 # 0 = waiting for player to place ships
-    logger.debug("[GAME STATE] Single-player: Placement phase")
-
-    def send(msg):
-        wfile.write(msg + '\n')
-        wfile.flush()
-
-    def send_board(board,show_hidden=False):
-        grid_to_send = board.hidden_grid if show_hidden else board.display_grid
-        wfile.write("GRID\n")
-        wfile.write("_|" + " ".join(str(i + 1).rjust(2) for i in range(board.size)) + '\n')
-        for r in range(board.size):
-            row_label = chr(ord('A') + r)
-            row_str = "  ".join(grid_to_send[r][c] for c in range(board.size))
-            wfile.write(f"{row_label:2} {row_str}\n")
-        wfile.write('\n')
-        wfile.flush()
-
-    def recv():
-        return rfile.readline().strip()
-
-    board = Board(BOARD_SIZE)
-    board.place_ships_manually(SHIPS)
-    gameState_ref[0] = 1 # Game is in progress, now in firing phase
-    logger.debug("[GAME STATE] Singleplayer: Transition to firing phase")
-
-    send("Welcome to Online Single-Player Battleship! Try to sink all the ships. Type 'quit' to exit.")
-
-    moves = 0
-    while True:
-        send_board(board)
-        send("Enter coordinate to fire at (e.g. B5):")
-        guess = recv()
-        if guess.lower() == 'quit':
-            send("Thanks for playing. Goodbye.")
-            return
-
-        try:
-            row, col = parse_coordinate(guess)
-            result, sunk_name = board.fire_at(row, col)
-            moves += 1
-
-            if result == 'hit':
-                if sunk_name:
-                    send(f"HIT! You sank the {sunk_name}!")
-                else:
-                    send("HIT!")
-                if board.all_ships_sunk():
-                    send_board(board)
-                    send(f"Congratulations! You sank all ships in {moves} moves.")
-                    logger.debug("[GAME STATE] Single-player: All ships sunk — Game over")
-                    gameState_ref[0] = 2 # Game over
-                    return
-            elif result == 'miss':
-                send("MISS!")
-            elif result == 'already_shot':
-                send("You've already fired at that location.")
-        except ValueError as e:
-            send(f"Invalid input: {e}")
-
 def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
 
     def send(msg,player):
@@ -388,7 +321,7 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
                     })
                     break
                 else:
-                    send(f"  [!] Cannot place {ship_name} at {coord_str} (orientation={orientation_str}). Try again.",player)
+                    send(f"[!] Cannot place {ship_name} at {coord_str} (orientation={orientation_str}). Try again.",player)
 
     send("Welcome to Online Multi-Player Battleship! Try to sink all the ships. Type 'quit' to exit.",1)
     send("Welcome to Online Multi-Player Battleship! Try to sink all the ships. Type 'quit' to exit.",2)
@@ -421,8 +354,6 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
 
     gameState_ref[0] = 1 # Game state is now in progress 
     logger.debug("[GAME STATE] Multiplayer: Transition to firing phase")
-
-
 
     current_player = 1
     while True:
@@ -479,7 +410,12 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
             # Switch turns between Player 1 and Player 2
             current_player = 3 - current_player
         except ValueError as e:
-            send("  Invalid input, better luck next shot...", current_player)
+            send("  Invalid input, try again.", current_player)
+
+    #new game?
+    #send("Would you like a rematch?")
+    #rematch1 = recv(1)
+    #def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref)
 
 
 

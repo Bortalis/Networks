@@ -82,9 +82,6 @@ def receive_messages(rfile):
             break
         
 
-        #if line == "Your turn!":
-            #cls() maybe for later
-
         # Handle game state changes
         if line.startswith("STATE:"):
             try:
@@ -95,7 +92,6 @@ def receive_messages(rfile):
             continue  # Skip further processing for this line
 
         # Process and display the message
-
         line = line.strip()
         if line == "GRID":
             while True:
@@ -109,17 +105,6 @@ def receive_messages(rfile):
             if line == '>>': #input request flag
                 now_sending.clear()
                 now_sending.wait(timeout=None) # Wait until the user has sent ther input
-
-            # TASK4.1 process the server's responses, for example:
-            #if line == 'RESULT MISS':
-            #    print("[INFO] The shot was a miss!")
-            #elif line == 'RESULT HIT':
-            #    print("[INFO] The shot was a hit!")
-            #elif line == '>>':  # Time for user input
-            #    now_sending.clear() 
-            #    now_sending.wait(timeout=None)  # Wait for the user to send input
-        
-
 
 def main():
     # Set up connection
