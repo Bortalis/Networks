@@ -9,7 +9,8 @@ Simply pipes user input to the server, and prints all server responses.
 
 import socket
 import threading
-
+import time
+import msvcrt
 import sys
 
 gameState = 0 #gameState the client understands
