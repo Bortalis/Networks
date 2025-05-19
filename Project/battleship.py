@@ -256,7 +256,7 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
                 connected2 = False
             return "QUIT"
 
-        if not mail or mail == '':
+        if not mail:
             if player == 1:
                 connected1 = False
             else:

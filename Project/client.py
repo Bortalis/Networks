@@ -21,7 +21,6 @@ server_disc = threading.Event() # Is true when the thead closes
 now_sending = threading.Event() # Is true while the sever is sending lines
 now_sending.set() # The server starts first
 
-
 def flush_input(): #removes up any buffered up input
     while msvcrt.kbhit():
         msvcrt.getch()
@@ -57,9 +56,14 @@ def receive_messages(rfile):
     global gameState
 
     while True:
-        line = rfile.readline()
-        if not line: # Stops the thread once the server disconnects
-            print("[INFO] Server disconnected.")
+        try:
+            line = rfile.readline()
+            if not line: # Stops the thread once the server disconnects
+                print("[INFO] Server disconnected.")
+                server_disc.set() # Alerts the main thread that the server disconnected
+                break
+        except:
+            print("[ERROR] Server error.")
             server_disc.set() # Alerts the main thread that the server disconnected
             break
         
