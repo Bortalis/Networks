@@ -57,7 +57,7 @@ def quick_time_event(): #30 second timeout for inputs
 def receive_messages(rfile):
     """Continuously receive and display messages from the server"""
     global gameState
-    do_cls = False
+    do_cls = True
     while True:
         try:
             line = rfile.readline()
@@ -70,13 +70,14 @@ def receive_messages(rfile):
             server_disc.set() # Alerts the main thread that the server disconnected
             break
         
-        if line.strip() == "Invalid input, try again.":    
+        if line.strip() == "Invalid input, try again." or line.strip() == "--GAME START!--":    
             cls()
             do_cls = False
         if line.strip() == "Your turn!":
             if do_cls:
                 cls()
             do_cls = True
+
 
             
 
