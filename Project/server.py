@@ -84,8 +84,10 @@ def put_in_queue(client):
 
     queue.append(client)
 
+
     game_is_on = len(players) == 2
     waiting = len(queue)
+    spectators.append(client)
 
     if waiting < 2 and not game_is_on:
         send("WAITING: Hold on until another player to join...\n")       
@@ -96,10 +98,11 @@ def put_in_queue(client):
         if waiting == 2:
             send("WAITING: You are next in line for a game\n",queue[1])
         send("[INFO] You are now spectating. Live Updates will appear below")
-        spectators.append(client)
 
 
     else:
+        spectators.pop(0)
+        spectators.pop(0)
         players.append(queue.pop(0))
         players.append(queue.pop(0))
         game = threading.Thread(target=multi_client, args=(players[0], players[1]), daemon=True)

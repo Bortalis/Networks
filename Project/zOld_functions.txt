@@ -268,3 +268,6 @@ def spectator_listen(client):
         logger.debug(f"[ERROR] Spectator listener error: {e}")
 
 #threading.Thread(target=spectator_listen, args=(client,), daemon=True).start()
+
+
+It worked
