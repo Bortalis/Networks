@@ -1,1 +1,5 @@
-
+DEBUG:__main__:[INFO] Server listening on 127.0.0.1:5000
+DEBUG:__main__:[INFO] Client connected from ('127.0.0.1', 63149)
+DEBUG:__main__:[INFO] Client connected from ('127.0.0.1', 63150)
+DEBUG:battleship:[GAME STATE] Multiplayer: Starting placement phase
+DEBUG:battleship:[GAME STATE] Multiplayer: Transition to firing phase
