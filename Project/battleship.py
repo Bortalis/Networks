@@ -192,15 +192,11 @@ def parse_coordinate(coord_str):
     row = ord(row_letter) - ord('A')
     col = int(col_digits) - 1  # zero-based
 
-    # simple valididation forces coordinates within bounds
-    if row > 9:
-        int("lol") #sets off a value error
-    elif row < 0:
-        int("lol") #sets off a value error
-    if col > 9:
-        int("lol") #sets off a value error
-    elif col < 0:
-        int("lol") #sets off a value error
+    # explicit validation
+    if not (0 <= row <= 9):
+        raise ValueError(f"Row '{row_letter}' is out of bounds (A-J).")
+    if not (0 <= col <= 9):
+        raise ValueError(f"Column '{col_digits}' is out of bounds (1-10).")
     return (row, col)
 
 def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
@@ -289,15 +285,17 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
                 coord_str = recv(player)
                 if coord_str == "QUIT":
                     return True
+                             
+                try:
+                    row, col = parse_coordinate(coord_str)
+                except ValueError as e:
+                    send(f"[!] Invalid coordinate: {e}", player)
+                    continue
+
                 send("Orientation? Enter 'H' (horizontal) or 'V' (vertical):",player)
                 orientation_str = recv(player)
                 if orientation_str == "QUIT":
                     return True
-                try:
-                    row, col = parse_coordinate(coord_str)
-                except ValueError as e:
-                    send(f"[!] Invalid coordinate: {e}")
-                    continue
 
                 # Convert orientation_str to 0 (horizontal) or 1 (vertical)
                 if orientation_str == 'H':
