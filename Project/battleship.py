@@ -206,6 +206,9 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
     connected1 = True
     connected2 = True
 
+    player1_board = Board(BOARD_SIZE)
+    player2_board = Board(BOARD_SIZE)
+
     def send(msg,player):    
             if player == 1:
                 wfile1.write(msg + '\n')
@@ -221,6 +224,29 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
             try:
                 spectator[3].write("[SPECTATOR] " + msg + "\n")
                 spectator[3].flush()
+            except Exception:
+                pass  # Optionally remove disconnected spectators
+    def broadcast_to_spectators_boards():
+
+        grid1 = player1_board.hidden_grid
+        grid2 = player2_board.hidden_grid
+
+        if not hasattr(run_multi_player_game_online, "spectators"):
+            return #no spectators to be informed
+        
+        for spectator in run_multi_player_game_online.spectators:
+            try:
+                spectator[3].write("Player1's Board                   Player2's Board\n")
+                spectator[3].write("_|" + " ".join(str(i + 1).rjust(2) for i in range(player1_board.size)))
+                spectator[3].write("    _|" + " ".join(str(i + 1).rjust(2) for i in range(player2_board.size)) + '\n')
+                for r in range(player1_board.size):
+                    row_label = chr(ord('A') + r)
+                    row_str1 = "  ".join(grid1[r][c] for c in range(player1_board.size))
+                    row_str2 = "  ".join(grid2[r][c] for c in range(player1_board.size))
+                    spectator[3].write(f"{row_label:2} {row_str1}   {row_label:2} {row_str2}\n")
+                spectator[3].write('\n')
+                spectator[3].flush()
+
             except Exception:
                 pass  # Optionally remove disconnected spectators
             
@@ -324,8 +350,7 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
     gameState_ref[0] = 0 # Waiting for player to place ships
     logger.debug("[GAME STATE] Multiplayer: Starting placement phase")
 
-    player1_board = Board(BOARD_SIZE)
-    player2_board = Board(BOARD_SIZE)
+
 
     quit = False
     # Board setup
@@ -398,9 +423,11 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
                 else:
                     send("HIT!", current_player)
                     broadcast_to_spectators(f"Player {current_player} HIT at {guess}!")
+                broadcast_to_spectators_boards()
             elif result == 'miss':
                 send("MISS!", current_player)
                 broadcast_to_spectators(f"Player {current_player} missed at {guess}.")
+                broadcast_to_spectators_boards()
             elif result == 'already_shot':
                 send("You've already shot at that spot. Pay attention.", current_player)
                 broadcast_to_spectators(f"Player {current_player} refired at {guess} (already shot).")
