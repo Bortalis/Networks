@@ -13,10 +13,6 @@ import msvcrt
 
 gameState = 0 #gameState the client understands
 
-def flush_input():
-    while msvcrt.kbhit():
-        msvcrt.getch()
-
 HOST = '127.0.0.1'
 PORT = 5000
 #python3 Networks\Project\client.py for testing purposes
@@ -52,6 +48,8 @@ def quick_time_event(): #30 second timeout for inputs
             return "QUIT"
         time.sleep(0.05) # we want to check every so often, but not so often that it strains performance
     print(flush=True) # used as a new line
+    if input_str == '':
+        return '-'#empty input isnt valid, but the connection is not brokn
     return input_str
 
 def receive_messages(rfile):

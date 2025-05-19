@@ -246,17 +246,9 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
         send(">>",player)
         try:
             if player == 1:
-                ready, _, _ = select.select([rfile1], [], [], 10)  # 10 second timeout
-                if ready:
-                    mail = rfile1.readline().strip().upper()
-                else:
-                    mail = ''
+                mail = rfile1.readline().strip().upper()
             else:
-                ready, _, _ = select.select([rfile2], [], [], 10)
-                if ready:
-                    mail = rfile2.readline().strip().upper()
-                else:
-                    mail = ''
+                mail = rfile2.readline().strip().upper()
         except Exception:
             if player == 1:
                 connected1 = False
