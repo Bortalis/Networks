@@ -217,6 +217,16 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
             else:
                 wfile2.write(msg + '\n')
                 wfile2.flush()
+
+    def broadcast_to_spectators(msg):
+        if not hasattr(run_multi_player_game_online, "spectators"):
+            return #no spectators to be informed
+        for spectator in run_multi_player_game_online.spectators:
+            try:
+                spectator[3].write("[SPECTATOR] " + msg + "\n")
+                spectator[3].flush()
+            except Exception:
+                pass  # Optionally remove disconnected spectators
             
     def send_board(board, player, show_hidden = False):
         grid = board.hidden_grid if show_hidden else board.display_grid
@@ -347,6 +357,7 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
         send("--GAME START!--",1)   
         send("--GAME START!--",2)
 
+        broadcast_to_spectators("Game has started!")
         gameState_ref[0] = 1 # Game state is now in progress 
         logger.debug("[GAME STATE] Multiplayer: Transition to firing phase")
 
@@ -386,17 +397,22 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
             if result == 'hit':
                 if sunk_name:
                     send(f"HIT! You sank the {sunk_name}!", current_player)
+                    broadcast_to_spectators(f"Player {current_player} HIT and sank {sunk_name} at {guess}!")
                 else:
                     send("HIT!", current_player)
+                    broadcast_to_spectators(f"Player {current_player} HIT at {guess}!")
             elif result == 'miss':
                 send("MISS!", current_player)
+                broadcast_to_spectators(f"Player {current_player} missed at {guess}.")
             elif result == 'already_shot':
                 send("You've already shot at that spot. Pay attention.", current_player)
+                broadcast_to_spectators(f"Player {current_player} refired at {guess} (already shot).")
        
             # Check if the opponent has lost all ships
             if opponent_board.all_ships_sunk():
                 send(f"\nPlayer {current_player} wins! All ships have been sunk. ({moves} moves)", current_player)
                 send(f"\nYou lost! All your ships have been sunk. ({moves} moves)", 3 - current_player)
+                broadcast_to_spectators(f"Player {current_player} won! Enemy ships sunks in {moves} moves.")
                 gameState_ref[0] = 2 # Game over
                 logger.debug(f"[GAME STATE] Multiplayer: Player {current_player} wins - Game over")
                 break
@@ -411,15 +427,18 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
         send(f"Player {current_player} forfeits! Player {3 - current_player} wins!", current_player)
         send(f"Player {current_player} forfeits! Player {3 - current_player} wins!", 3 - current_player)
         gameState_ref[0] = 2 # Game over
+        broadcast_to_spectators(f"Player {current_player} forfeits! Player {3 - current_player} wins by forfeit!")
         logger.debug(f"[GAME STATE] Multiplayer: Player {current_player} quit - Game over")
         send("Returning to lobby",1)
         send("Returning to lobby",2)
     elif not connected2:
         send("Player 2 has lost connection, ending match",1)
+        broadcast_to_spectators(f"Player 2 lost connection, ending match")
         gameState_ref[0] = 2
         logger.debug(f"[GAME STATE] Multiplayer: Player {current_player} disconnected - Game over")
     elif not connected1:
         send("Player 1 has lost connection, ending match",2)
+        broadcast_to_spectators(f"Player 1 lost connection, ending match")
         gameState_ref[0] = 2
         logger.debug(f"[GAME STATE] Multiplayer: Player {current_player} disconnected - Game over")
     else:

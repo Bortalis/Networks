@@ -37,6 +37,9 @@ def multi_client(player1, player2):
     gamestate_thread_P1.start()
     gamestate_thread_P2.start()
 
+    #pass list of spectators
+    run_multi_player_game_online.spectators = spectators
+
     #check if connections are still intact
     con1, con2 = run_multi_player_game_online(player1[2],player1[3],player2[2],player2[3], gamestate_ref)
 
@@ -82,12 +85,15 @@ def put_in_queue(client):
             logger.debug(f"[ERROR] Failed to communicate with waiting client: {e}")
 
     queue.append(client)
-
-    if len(queue) < 2:
-        send("WAITING: Hold on until another player to join...\n")
             
-    elif len(players) == 2:
+    if len(players) == 2:
         send("WAITING: Game in progress, please wait for it to end...\n")
+        send("[INFO] You are now spectating. Live Updates will appear below")
+        spectators.append(client)
+        threading.Thread(target=spectator_listen, args=(client,), daemon=True).start()
+
+    elif len(queue) < 2:
+        send("WAITING: Hold on until another player to join...\n")
     
     else:
         players.append(queue.pop(0))
@@ -98,6 +104,21 @@ def put_in_queue(client):
 
 queue = [] #players waiting for an opponent
 players = [] #players playing
+spectators = [] #list of players watching the game, players will also be in queue 
+
+def spectator_listen(client):
+    """Listen for the input from spectator???"""
+    rfile = client[2]
+    wfile = client[3]
+    try:
+        while True:
+            line = rfile.readline()
+            if not line:
+                break  # Client disconnected
+            wfile.write("ERROR: You are a spectator and cannot send commands.\n")
+            wfile.flush()
+    except Exception as e:
+        logger.debug(f"[ERROR] Spectator listener error: {e}")
 
 def main():
     try:
