@@ -29,6 +29,9 @@ logger = logging.getLogger(__name__)
 
 game_running = threading.Event()
 
+queue = [] #players waiting for an opponent
+players = [] #players playing
+
 def multi_client(player1, player2):
 
     # Start threads to send game state updates to the clients
@@ -68,12 +71,23 @@ def multi_client(player1, player2):
         except: pass
         
 
+def spectate(qu = queue):
 
+    def send(msg,client):
+        try:
+            client[3].write(msg)
+            client[3].flush()
+        except Exception as e:
+            logger.debug(f"[ERROR] Failed to communicate with waiting client: {e}")
+
+    for client in queue:
+        send("hi",client)
+
+    pass
 
 
 def put_in_queue(client):
     
-
     def send(msg,cl=client):
         try:
             cl[3].write(msg)
@@ -83,21 +97,31 @@ def put_in_queue(client):
 
     queue.append(client)
 
-    if len(queue) < 2:
-        send("WAITING: Hold on until another player to join...\n")
-            
-    elif len(players) == 2:
+    game_is_on = len(players) == 2
+    waiting = len(queue)
+
+    if waiting < 2 and not game_is_on:
+        send("WAITING: Hold on until another player to join...\n")       
+    elif game_is_on:
         send("WAITING: Game in progress, please wait for it to end...\n")
-    
+        if waiting == 1:
+            send("WAITING: You are next in line for a game\n",queue[0])
+        if waiting == 2:
+            send("WAITING: You are next in line for a game\n",queue[1])
     else:
         players.append(queue.pop(0))
         players.append(queue.pop(0))
         game = threading.Thread(target=multi_client, args=(players[0], players[1]), daemon=True)
         game.start()
 
+        if waiting-2 >= 1: #-2 account for the people just removed
+            send("WAITING: You are next in line for a game\n",queue[0])
+        if waiting-2 >= 2:
+            send("WAITING: You are next in line for a game\n",queue[1])
 
-queue = [] #players waiting for an opponent
-players = [] #players playing
+    
+
+
 
 def main():
     try:
