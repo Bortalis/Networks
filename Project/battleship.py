@@ -419,18 +419,18 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
             if result == 'hit':
                 if sunk_name:
                     send(f"HIT! You sank the {sunk_name}!", current_player)
-                    broadcast_to_spectators(f"Player {current_player} HIT and sank {sunk_name} at {guess}!")
+                    broadcast_to_spectators(f"Player {current_player} HIT and sank {sunk_name} on {guess}!")
                 else:
                     send("HIT!", current_player)
-                    broadcast_to_spectators(f"Player {current_player} HIT at {guess}!")
+                    broadcast_to_spectators(f"Player {current_player} HIT on {guess}!")
                 broadcast_to_spectators_boards()
             elif result == 'miss':
                 send("MISS!", current_player)
-                broadcast_to_spectators(f"Player {current_player} missed at {guess}.")
+                broadcast_to_spectators(f"Player {current_player} missed on {guess}.")
                 broadcast_to_spectators_boards()
             elif result == 'already_shot':
                 send("You've already shot at that spot. Pay attention.", current_player)
-                broadcast_to_spectators(f"Player {current_player} refired at {guess} (already shot).")
+                broadcast_to_spectators(f"Player {current_player} refired on {guess} (already shot).")
        
             # Check if the opponent has lost all ships
             if opponent_board.all_ships_sunk():
