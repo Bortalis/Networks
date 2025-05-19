@@ -85,7 +85,7 @@ def receive_messages(rfile):
         if line.startswith("STATE:"):
             try:
                 gameState = int(line.split(":")[1])
-                print(f"[INFO] Game phase is now: {gameState} (0=placing, 1=firing, 2=game over)")
+                #print(f"[INFO] Game phase is now: {gameState} (0=placing, 1=firing, 2=game over)")
             except (IndexError, ValueError):
                 print("[WARNING] Received malformed state update from server.")
             continue  # Skip further processing for this line
