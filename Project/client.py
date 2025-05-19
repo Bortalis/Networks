@@ -73,9 +73,12 @@ def receive_messages(rfile):
         if line.strip() == "Invalid input, try again.":    
             cls()
             do_cls = False
-        if line.strip() == "Your turn!" and do_cls:
-            cls()
+        if line.strip() == "Your turn!":
+            if do_cls:
+                cls()
             do_cls = True
+
+            
 
         # Handle game state changes
         if line.startswith("STATE:"):
