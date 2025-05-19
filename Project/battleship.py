@@ -194,13 +194,13 @@ def parse_coordinate(coord_str):
 
     # simple valididation forces coordinates within bounds
     if row > 9:
-        row = 9
+        int("lol") #sets off a value error
     elif row < 0:
-        row = 0
+        int("lol") #sets off a value error
     if col > 9:
-        col = 9
+        int("lol") #sets off a value error
     elif col < 0:
-        col = 0
+        int("lol") #sets off a value error
     return (row, col)
 
 def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
@@ -363,9 +363,9 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
             opponent_board = player1_board
 
         # Display boards
-        send(f"Your Opponent's board:", current_player)
+        send(f"-------Opponent's board-------:", current_player)
         send_board(opponent_board, current_player)
-        send(f"Your board:", current_player)
+        send(f"----------Your board----------:", current_player)
         send_board(board_in_use, current_player, True)
 
 
@@ -404,8 +404,10 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
             # Switch turns between Player 1 and Player 2
             current_player = 3 - current_player
         except ValueError as e:
-            send("  Invalid input, try again.", current_player)
+            send("Invalid input, try again.", current_player)
 
+
+    #post game
 
     if quit and connected1 and connected2:
         send(f"Player {current_player} forfeits! Player {3 - current_player} wins!", current_player)

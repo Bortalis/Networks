@@ -29,6 +29,9 @@ logger = logging.getLogger(__name__)
 
 game_running = threading.Event()
 
+queue = [] #players waiting for an opponent
+players = [] #players playing
+
 def multi_client(player1, player2):
 
     # Start threads to send game state updates to the clients
@@ -68,12 +71,23 @@ def multi_client(player1, player2):
         except: pass
         
 
+def spectate(qu = queue):
 
+    def send(msg,client):
+        try:
+            client[3].write(msg)
+            client[3].flush()
+        except Exception as e:
+            logger.debug(f"[ERROR] Failed to communicate with waiting client: {e}")
+
+    for client in queue:
+        send("hi",client)
+
+    pass
 
 
 def put_in_queue(client):
     
-
     def send(msg,cl=client):
         try:
             cl[3].write(msg)
@@ -96,8 +110,6 @@ def put_in_queue(client):
         game.start()
 
 
-queue = [] #players waiting for an opponent
-players = [] #players playing
 
 def main():
     try:

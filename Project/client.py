@@ -9,7 +9,10 @@ import socket
 import threading
 import time
 import msvcrt
+import os
 
+def cls():
+    os.system("cls")
 
 gameState = 0 #gameState the client understands
 
@@ -54,7 +57,7 @@ def quick_time_event(): #30 second timeout for inputs
 def receive_messages(rfile):
     """Continuously receive and display messages from the server"""
     global gameState
-
+    do_cls = False
     while True:
         try:
             line = rfile.readline()
@@ -67,6 +70,12 @@ def receive_messages(rfile):
             server_disc.set() # Alerts the main thread that the server disconnected
             break
         
+        if line.strip() == "Invalid input, try again.":    
+            cls()
+            do_cls = False
+        if line.strip() == "Your turn!" and do_cls:
+            cls()
+            do_cls = True
 
         # Handle game state changes
         if line.startswith("STATE:"):
@@ -115,7 +124,7 @@ def main():
                 wfile.write(user_input + '\n')
                 wfile.flush()
 
-
+                
                 now_sending.set() # Server's turn to send a messages
     except KeyboardInterrupt:
         now_sending.set() # Unblocks the wait
