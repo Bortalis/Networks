@@ -72,22 +72,6 @@ def multi_client(player1, player2):
         except: pass
         try: player2[0].close()
         except: pass
-        
-
-def spectate(qu = queue):
-
-    def send(msg,client):
-        try:
-            client[3].write(msg)
-            client[3].flush()
-        except Exception as e:
-            logger.debug(f"[ERROR] Failed to communicate with waiting client: {e}")
-
-    for client in queue:
-        send("hi",client)
-
-    pass
-
 
 def put_in_queue(client):
     
