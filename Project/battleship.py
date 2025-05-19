@@ -416,8 +416,12 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
         send("Returning to lobby",2)
     elif not connected2:
         send("Player 2 has lost connection, ending match",1)
+        gameState_ref[0] = 2
+        logger.debug(f"[GAME STATE] Multiplayer: Player {current_player} disconnected - Game over")
     elif not connected1:
         send("Player 1 has lost connection, ending match",2)
+        gameState_ref[0] = 2
+        logger.debug(f"[GAME STATE] Multiplayer: Player {current_player} disconnected - Game over")
     else:
         send("Would you like a rematch? (Y/N) (0/2 needed)",1)
         rematch1 = recv(1)
