@@ -97,7 +97,7 @@ def put_in_queue(client):
             send("WAITING: You are next in line for a game\n",queue[0])
         if waiting == 2:
             send("WAITING: You are next in line for a game\n",queue[1])
-        send("[INFO] You are now spectating. Live Updates will appear below")
+        send("[INFO] You are now spectating. Live Updates will appear below\n")
 
 
     else:
