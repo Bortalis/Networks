@@ -348,7 +348,7 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
     send("Welcome Player2! Try to sink all the ships. Type 'quit' to exit.",2)
 
     gameState_ref[0] = 0 # Waiting for player to place ships
-    #logger.debug("[GAME STATE] Multiplayer: Starting placement phase")
+    logger.debug("[GAME STATE] Multiplayer: Starting placement phase")
 
 
 
@@ -381,7 +381,7 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
 
         broadcast_to_spectators("Game has started!")
         gameState_ref[0] = 1 # Game state is now in progress 
-        #logger.debug("[GAME STATE] Multiplayer: Transition to firing phase")
+        logger.debug("[GAME STATE] Multiplayer: Transition to firing phase")
 
     moves = 0
     current_player = 1
@@ -438,7 +438,7 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
                 send(f"\nYou lost! All your ships have been sunk. ({moves} moves)", 3 - current_player)
                 broadcast_to_spectators(f"Player {current_player} won! Enemy ships sunks in {moves} moves.")
                 gameState_ref[0] = 2 # Game over
-                #logger.debug(f"[GAME STATE] Multiplayer: Player {current_player} wins - Game over")
+                logger.debug(f"[GAME STATE] Multiplayer: Player {current_player} wins - Game over")
                 break
 
             # Switch turns between Player 1 and Player 2
@@ -454,19 +454,19 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
         send(f"Player {current_player} forfeits! Player {3 - current_player} wins!", 3 - current_player)
         gameState_ref[0] = 2 # Game over
         broadcast_to_spectators(f"Player {current_player} forfeits! Player {3 - current_player} wins by forfeit!")
-        #logger.debug(f"[GAME STATE] Multiplayer: Player {current_player} quit - Game over")
+        logger.debug(f"[GAME STATE] Multiplayer: Player {current_player} quit - Game over")
         send("Returning to lobby",1)
         send("Returning to lobby",2)
     elif not connected2:
         send("Player 2 has lost connection, ending match",1)
         broadcast_to_spectators(f"Player 2 lost connection, ending match")
         gameState_ref[0] = 2
-        #logger.debug(f"[GAME STATE] Multiplayer: Player {current_player} disconnected - Game over")
+        logger.debug(f"[GAME STATE] Multiplayer: Player {current_player} disconnected - Game over")
     elif not connected1:
         send("Player 1 has lost connection, ending match",2)
         broadcast_to_spectators(f"Player 1 lost connection, ending match")
         gameState_ref[0] = 2
-        #logger.debug(f"[GAME STATE] Multiplayer: Player {current_player} disconnected - Game over")
+        logger.debug(f"[GAME STATE] Multiplayer: Player {current_player} disconnected - Game over")
     else:
         send("Would you like a rematch? (Y/N) (0/2 needed)",1)
         rematch1 = recv(1)
