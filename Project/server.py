@@ -97,7 +97,7 @@ def put_in_queue(client):
             send("WAITING: You are next in line for a game\n",queue[1])
         send("[INFO] You are now spectating. Live Updates will appear below")
         spectators.append(client)
-        threading.Thread(target=spectator_listen, args=(client,), daemon=True).start()
+
 
     else:
         players.append(queue.pop(0))
@@ -110,28 +110,11 @@ def put_in_queue(client):
         if waiting-2 >= 2:
             send("WAITING: You are next in line for a game\n",queue[1])
 
-    
-
 
 
 queue = [] #players waiting for an opponent
 players = [] #players playing
 spectators = [] #list of players watching the game, players will also be in queue 
-
-def spectator_listen(client):
-    """Listen for the input from spectator???"""
-    rfile = client[2]
-    wfile = client[3]
-    try:
-        while True:
-            line = rfile.readline()
-            if not line:
-                break  # Client disconnected
-            wfile.write("ERROR: You are a spectator and cannot send commands.\n")
-            wfile.flush()
-    except Exception as e:
-        logger.debug(f"[ERROR] Spectator listener error: {e}")
-
 
 def main():
     try:
