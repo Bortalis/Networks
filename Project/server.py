@@ -161,5 +161,6 @@ def monitor_and_send_gamestate(wfile, gamestate_ref, interval=2):
 
         time.sleep(interval)
 
+
 if __name__ == "__main__":
     main()
