@@ -252,3 +252,22 @@ def run_single_player_game_online(rfile, wfile, gameState_ref):
                     break
                 else:
                     print(f"  [!] Cannot place {ship_name} at {coord_str} (orientation={orientation_str}). Try again.")
+
+def spectator_listen(client):
+    """Listen for the input from spectator???"""
+    rfile = client[2]
+    wfile = client[3]
+    try:
+        while client in queue:
+            line = rfile.readline()
+            if not line:
+                break  # Client disconnected
+            wfile.write("ERROR: You are a spectator and cannot send commands.\n")
+            wfile.flush()
+    except Exception as e:
+        logger.debug(f"[ERROR] Spectator listener error: {e}")
+
+#threading.Thread(target=spectator_listen, args=(client,), daemon=True).start()
+
+
+It worked

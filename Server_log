@@ -1,9 +1,19 @@
 DEBUG:__main__:[INFO] Server listening on 127.0.0.1:5000
-DEBUG:__main__:[INFO] Client connected from ('127.0.0.1', 64408)
-DEBUG:__main__:[INFO] Client connected from ('127.0.0.1', 64409)
+DEBUG:__main__:[INFO] Client connected from ('127.0.0.1', 57231)
+DEBUG:__main__:[INFO] Client connected from ('127.0.0.1', 57235)
 DEBUG:battleship:[GAME STATE] Multiplayer: Starting placement phase
-DEBUG:__main__:[INFO] Client connected from ('127.0.0.1', 64411)
-DEBUG:__main__:[INFO] Client connected from ('127.0.0.1', 64412)
-DEBUG:__main__:[INFO] Client connected from ('127.0.0.1', 64414)
+DEBUG:__main__:[INFO] Client connected from ('127.0.0.1', 57238)
+DEBUG:__main__:[INFO] Client connected from ('127.0.0.1', 57242)
+DEBUG:battleship:[GAME STATE] Multiplayer: Player 1 quit - Game over
+DEBUG:battleship:[GAME STATE] Multiplayer: Starting placement phase
+DEBUG:battleship:[GAME STATE] Multiplayer: Transition to firing phase
+DEBUG:battleship:[GAME STATE] Multiplayer: Player 2 quit - Game over
+DEBUG:battleship:[GAME STATE] Multiplayer: Starting placement phase
+DEBUG:battleship:[GAME STATE] Multiplayer: Player 1 quit - Game over
+DEBUG:battleship:[GAME STATE] Multiplayer: Starting placement phase
+DEBUG:battleship:[GAME STATE] Multiplayer: Player 1 quit - Game over
+DEBUG:battleship:[GAME STATE] Multiplayer: Starting placement phase
+DEBUG:battleship:[GAME STATE] Multiplayer: Player 1 quit - Game over
+DEBUG:battleship:[GAME STATE] Multiplayer: Starting placement phase
 DEBUG:battleship:[GAME STATE] Multiplayer: Player 1 quit - Game over
 DEBUG:battleship:[GAME STATE] Multiplayer: Starting placement phase

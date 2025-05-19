@@ -72,22 +72,6 @@ def multi_client(player1, player2):
         except: pass
         try: player2[0].close()
         except: pass
-        
-
-def spectate(qu = queue):
-
-    def send(msg,client):
-        try:
-            client[3].write(msg)
-            client[3].flush()
-        except Exception as e:
-            logger.debug(f"[ERROR] Failed to communicate with waiting client: {e}")
-
-    for client in queue:
-        send("hi",client)
-
-    pass
-
 
 def put_in_queue(client):
     
@@ -100,8 +84,10 @@ def put_in_queue(client):
 
     queue.append(client)
 
+
     game_is_on = len(players) == 2
     waiting = len(queue)
+    spectators.append(client)
 
     if waiting < 2 and not game_is_on:
         send("WAITING: Hold on until another player to join...\n")       
@@ -112,10 +98,11 @@ def put_in_queue(client):
         if waiting == 2:
             send("WAITING: You are next in line for a game\n",queue[1])
         send("[INFO] You are now spectating. Live Updates will appear below")
-        spectators.append(client)
-        threading.Thread(target=spectator_listen, args=(client,), daemon=True).start()
+
 
     else:
+        spectators.pop(0)
+        spectators.pop(0)
         players.append(queue.pop(0))
         players.append(queue.pop(0))
         game = threading.Thread(target=multi_client, args=(players[0], players[1]), daemon=True)
@@ -126,28 +113,11 @@ def put_in_queue(client):
         if waiting-2 >= 2:
             send("WAITING: You are next in line for a game\n",queue[1])
 
-    
-
 
 
 queue = [] #players waiting for an opponent
 players = [] #players playing
 spectators = [] #list of players watching the game, players will also be in queue 
-
-def spectator_listen(client):
-    """Listen for the input from spectator???"""
-    rfile = client[2]
-    wfile = client[3]
-    try:
-        while True:
-            line = rfile.readline()
-            if not line:
-                break  # Client disconnected
-            wfile.write("ERROR: You are a spectator and cannot send commands.\n")
-            wfile.flush()
-    except Exception as e:
-        logger.debug(f"[ERROR] Spectator listener error: {e}")
-
 
 def main():
     try:
