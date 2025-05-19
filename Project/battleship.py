@@ -293,7 +293,6 @@ def run_multi_player_game_online(rfile1, wfile1, rfile2, wfile2, gameState_ref):
                 orientation_str = recv(player)
                 if orientation_str == "QUIT":
                     return True
-
                 try:
                     row, col = parse_coordinate(coord_str)
                 except ValueError as e:
